@@ -1,0 +1,5 @@
+//
+rootProject.name = 'multi-module-gradle-4.10.3'
+
+include ':module-3'
+include ':module-4'

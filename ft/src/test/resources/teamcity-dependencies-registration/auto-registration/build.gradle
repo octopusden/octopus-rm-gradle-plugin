@@ -1,0 +1,14 @@
+//
+plugins {
+    id 'org.octopusden.release-management'
+}
+
+group = 'org.octopusden.dbsm.cloud'
+
+releaseManagement {
+    releaseDependencies {
+        component(name: 'w4w3_doc', version: project['doc.version'])
+   }
+}
+
+task assemble

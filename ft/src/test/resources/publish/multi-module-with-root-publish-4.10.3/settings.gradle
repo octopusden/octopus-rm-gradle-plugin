@@ -1,0 +1,5 @@
+//
+rootProject.name = 'multi-module-with-root-publish-4.10.3'
+
+include ':module-5'
+include ':module-6'

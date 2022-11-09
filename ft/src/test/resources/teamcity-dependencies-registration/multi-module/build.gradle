@@ -1,0 +1,17 @@
+//
+plugins {
+    id 'org.octopusden.release-management'
+}
+
+allprojects {
+    group = 'org.octopusden.dbsm.cloud'
+}
+
+releaseManagement {
+    releaseDependencies {
+        autoRegistration = true
+        fromDependencies {
+            include group: "com.${project["packageName"]}.dbsm.cloud"
+        }
+    }
+}

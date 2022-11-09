@@ -1,0 +1,15 @@
+//
+plugins {
+    id 'base'
+    id 'org.octopusden.release-management'
+}
+
+group = 'org.octopusden.uds'
+
+autoUpdateDependencies {
+    autoMapping = true
+}
+
+dumpAutoUpdateDependencies {
+    outputFile file("$buildDir/auto-update-dependencies-configuration.json")
+}

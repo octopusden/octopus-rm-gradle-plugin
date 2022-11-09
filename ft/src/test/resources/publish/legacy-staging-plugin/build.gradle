@@ -1,0 +1,108 @@
+/*
+*/
+
+version = hasProperty("SM_DSL_VERSION") ? SM_DSL_VERSION : hasProperty("buildVersion") ? buildVersion : "1.0-SNAPSHOT"
+
+description "Solution Mounter DSL $version"
+
+buildscript {
+    /* Escrow build support */
+    ext.m2localPath = project.hasProperty('m2_local') ? new File(m2_local).toURI().toURL().toString().replaceAll(/^file:\//, 'file:///') : null
+    ext.escrowBuild = m2localPath != null
+    repositories {
+        if (escrowBuild) {
+            maven {
+                url m2localPath
+            }
+        } else {
+            mavenLocal()
+        }
+    }
+    dependencies {
+        if (project.hasProperty("gradleStagingPluginVersion")) {
+            classpath group: 'org.octopusden.gradle.plugin', name: 'gradle-staging-plugin', version: gradleStagingPluginVersion
+        }
+    }
+}
+
+allprojects {
+    group = 'org.octopusden.release-management.ft'
+    version = rootProject.version
+    rootProject.buildscript.repositories.each {
+      repositories.add(it)
+    }
+}
+
+def subprojectsWithoutSources = []
+
+configure(subprojects.findAll { !(it.name in subprojectsWithoutSources) }) {
+    apply plugin: 'java-library'
+
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+
+    dependencies {
+        implementation group: "org.slf4j", name: "slf4j-api", version: project['slf4j.version']
+    }
+
+    task sourcesJar(type: Jar, dependsOn: classes) {
+        classifier = 'sources'
+        from sourceSets.main.allSource
+    }
+
+    task javadocJar(type: Jar, dependsOn: javadoc) {
+        classifier = 'javadoc'
+        from javadoc.destinationDir
+    }
+
+    artifacts {
+        archives sourcesJar
+        archives javadocJar
+    }
+
+    //
+    //Publishing section
+    //
+    apply plugin: 'maven-publish'
+
+    if (project.hasProperty("gradleStagingPluginVersion")) {
+        apply plugin: 'gradle-staging-plugin'
+        nexusStaging {
+            profileId = projectParameter('stagingProfileId')
+            repositoryId = projectParameter('stagingRepositoryId')
+        }
+    }
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+
+                artifact sourcesJar {
+                    classifier "sources"
+                }
+
+                artifact javadocJar {
+                    classifier "javadoc"
+                }
+            }
+        }
+        repositories {
+            if (escrowBuild) {
+                maven {
+                    url m2localPath
+                }
+            } else {
+                maven {
+                }
+            }
+        }
+    }
+}
+
+def projectParameter(String name) {
+    projectParameter(name, null)
+}
+
+def projectParameter(String name, String defaultValue) {
+    project.hasProperty(name) ? project.property(name) : defaultValue
+}

@@ -1,0 +1,26 @@
+plugins {
+    id 'base'
+    id 'org.octopusden.release-management'
+    id 'maven-publish'
+}
+
+group='org.octopusden.release-management.ft'
+
+configurations {
+    builds
+}
+
+def libArtifact = artifacts.add('builds', file('gradle.properties')) {
+    name project.name
+    type 'txt'
+    extension 'txt'
+    classifier CLASSIFIER
+}
+
+publishing {
+    publications {
+        main(MavenPublication) {
+            artifact libArtifact
+        }
+    }
+}

@@ -1,0 +1,20 @@
+//
+plugins {
+    id 'base'
+    id 'org.octopusden.release-management'
+}
+
+group = 'org.octopusden.uds'
+
+autoUpdateDependencies {
+    component(name: 'platform-commons', projectProperty: 'pl-commons-version', versionRange: "(1,)")
+    component {
+        name 'appserver'
+        projectProperty 'as-server.version'
+        versionRange = "[1,)"
+    }
+}
+
+dumpAutoUpdateDependencies {
+    outputFile = file("$buildDir/auto-update-dependencies-configuration.json")
+}
