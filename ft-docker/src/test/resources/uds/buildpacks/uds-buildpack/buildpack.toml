@@ -1,0 +1,8 @@
+api = "0.6"
+
+[buildpack]
+  id = "uds"
+  version = "0.0.1"
+
+[[stacks]]
+  id = "org.octopusden.f1.stacks.uds"

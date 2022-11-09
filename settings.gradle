@@ -1,0 +1,13 @@
+pluginManagement {
+    plugins {
+        id "com.jfrog.artifactory" version settings['jfrog-artifactory.version']
+    }
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.namespace == 'com.jfrog') {
+                useModule("org.jfrog.buildinfo:build-info-extractor-gradle:${settings['jfrog-artifactory.version']}")
+            }
+        }
+    }
+}
+rootProject.name="org.octopusden.release-management"

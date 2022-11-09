@@ -1,0 +1,39 @@
+//
+plugins {
+    id 'base'
+    id 'org.octopusden.release-management'
+}
+
+group = 'org.octopusden.release-management.ft'
+
+apply plugin: 'maven-publish'
+
+configurations {
+    distr_deps
+}
+
+dependencies {
+    distr_deps 'org.apache.logging.log4j:log4j-core:2.14.1'
+}
+
+task distr(type: Zip) {
+    from 'src/resources'
+    destinationDirectory = buildDir
+    archiveFileName = 'simple-module.zip'
+}
+
+assemble.dependsOn distr
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            artifact (distr) {
+                artifactId 'simple-module-pom-dependencies'
+                extension 'zip'
+                pom {
+                    declareDependencies(configurations.distr_deps)
+                }
+           }
+        }
+    }
+}

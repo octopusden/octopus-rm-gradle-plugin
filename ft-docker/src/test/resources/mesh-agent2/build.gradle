@@ -1,0 +1,88 @@
+plugins {
+  id 'base'
+  id 'maven-publish'
+  id 'org.octopusden.release-management'
+}
+
+ext {
+  repository = "git.domain.corp/system/mesh-agent2"
+}
+
+platformDockerWrapper {
+    image = "${project.'docker.registry'}/platform/go-build:1.1.7"
+    workDir = '/buildDir'
+    dockerOptions = ['--network', 'host']
+    bindMounts = ["$rootDir:/project/src/${repository}.git", "$buildDir:/buildDir", "$buildDir/deps/:/deps", "$buildDir/go-cache:/.cache"]
+    env = ["GOPATH": "/go:/deps:/project"]
+    commandAndArguments = ['go', 'build', "-ldflags=-s -w -X git.domain.corp/system/go-commons.git/srv.Version=${project.version}"]
+}
+
+group = "org.octopusden.mesh2"
+
+configurations {
+  go_compile
+}
+
+dependencies {
+  go_compile "com.${property("packageName")}.golang.commons:commons:1.0.134:@zip"
+}
+
+task unpackDependencies(type: Copy) {
+  configurations.go_compile.each { goCompileFile ->
+    zipTree(goCompileFile).matching { include '**/metadata.properties' }.singleFile?.withInputStream { metadataIs ->
+      Properties p = new Properties()
+      p.load(metadataIs)
+      def repo = p["repository"]
+      if (repo != null) {
+        from (zipTree(goCompileFile)) {
+          into "${repo}.git"
+        }
+      }
+    }
+  }
+  into "$buildDir/deps/src"
+}
+
+task buildLinuxGoApplication(type: com.platformlib.plugins.gradle.wrapper.task.DockerTask, dependsOn: unpackDependencies) {
+    outputs.file("$buildDir/mesh-agent2")
+    commandAndArguments += ['-o', 'mesh-agent2', "${repository}.git/cmd/mesh-agent2"]
+}
+
+task buildWinGoApplication(type: com.platformlib.plugins.gradle.wrapper.task.DockerTask, dependsOn: unpackDependencies) {
+    outputs.file("$buildDir/mesh-agent2.exe")
+    env += ['GOARCH': 'amd64', 'GOOS': 'windows', 'CXX': 'x86_64-w64-mingw32-g++', 'CC': 'x86_64-w64-mingw32-gcc', 'CGO_ENABLED': '1']
+    commandAndArguments += ['-o', 'mesh-agent2.exe', "${repository}.git/cmd/mesh-agent2"]
+}
+
+task windowsZip(type: Zip, dependsOn: buildWinGoApplication) {
+  archiveName = "mesh-agent2-windows.zip"
+  destinationDir = file(buildDir)
+  from buildWinGoApplication
+}
+
+task linuxZip(type: Zip, dependsOn: buildLinuxGoApplication) {
+  archiveName = "mesh-agent2-linux.zip"
+  destinationDir = file(buildDir)
+  from(buildLinuxGoApplication) {
+    fileMode 0755
+  }
+}
+
+publishing {
+  publications {
+    maven(MavenPublication) {
+      artifact(linuxZip) {
+        classifier "linux"
+        extension "zip"
+      }
+      artifact(windowsZip) {
+        classifier "windows"
+        extension "zip"
+      }
+    }
+  }
+}
+
+assemble {
+  dependsOn = [windowsZip, linuxZip]
+}

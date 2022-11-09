@@ -1,0 +1,21 @@
+//
+plugins {
+    id 'base'
+    id 'org.octopusden.release-management'
+}
+
+group = 'org.octopusden.uds'
+
+autoUpdateDependencies {
+    component(name: 'platform-commons', projectProperty: 'pl-commons-version')
+    pullRequest = true
+    createJiraIssue = true
+    component {
+        name 'appserver'
+        projectProperty 'as-server.version'
+    }
+}
+
+dumpAutoUpdateDependencies {
+    outputFile = file("$buildDir/auto-update-dependencies-configuration.json")
+}

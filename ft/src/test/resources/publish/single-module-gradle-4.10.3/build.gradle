@@ -1,0 +1,25 @@
+apply plugin: 'maven-publish'
+
+group = 'org.octopusden.release-management.ft'
+version = project.hasProperty("buildVersion") ? buildVersion : "1.0.DEV"
+
+buildscript {
+    repositories {
+        staging()
+    }
+    dependencies {
+        classpath "org.octopusden.release-management:org.octopusden.release-management:${project.findProperty('release-management.version') ?: '1.0-SNAPSHOT'}"
+    }
+}
+
+apply plugin: 'org.octopusden.release-management'
+
+
+publishing {
+    publications {
+        distr(MavenPublication) {
+            artifactId "single-module-gradle-4103"
+            artifact("src/README.jar")
+        }
+    }
+}

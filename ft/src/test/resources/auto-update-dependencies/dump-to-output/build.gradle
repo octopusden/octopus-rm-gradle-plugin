@@ -1,0 +1,13 @@
+plugins {
+    id 'base'
+    id 'org.octopusden.release-management'
+}
+
+group = 'org.octopusden.uds'
+
+autoUpdateDependencies {
+    component {
+        name 'appserver'
+        projectProperty 'as-server.version'
+    }
+}

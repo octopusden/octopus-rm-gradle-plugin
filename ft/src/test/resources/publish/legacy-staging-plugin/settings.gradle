@@ -1,0 +1,5 @@
+//
+rootProject.name="solution-mounter-dsl"
+
+include ':solution-mounter-dsl-core'
+include ':solution-mounter-dsl-file'

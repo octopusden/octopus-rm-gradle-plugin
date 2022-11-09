@@ -1,0 +1,22 @@
+apply plugin: UpdateDependenciesServiceGradlePlugin
+
+class UpdateDependenciesServiceGradlePlugin implements Plugin<Gradle> {
+    private static final String DUMP_AUTO_UPDATE_DEPENDENCIES_TASK_NAME = 'dumpAutoUpdateDependencies'
+    void apply(Gradle gradle) {
+        gradle.rootProject { project ->
+            project.gradle.buildFinished {
+                def dumpAutoUpdateDependencies = project.rootProject.tasks.findByPath(DUMP_AUTO_UPDATE_DEPENDENCIES_TASK_NAME)
+                if (dumpAutoUpdateDependencies) {
+                    java.util.Optional<String> json = dumpAutoUpdateDependencies.toPrettyJson()
+                    if (json.isPresent()) {
+                        logger.quiet("-----BEGIN AUDC-----\n${json.get()}\n-----END AUDC-----")
+                    } else {
+                        logger.quiet("There is no dependency auto updating configuration")
+                    }
+                } else {
+                    logger.quiet("There is no $DUMP_AUTO_UPDATE_DEPENDENCIES_TASK_NAME task in root project, nothing to dump")
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,26 @@
+plugins {
+    id 'org.octopusden.release-management'
+}
+
+allprojects {
+    group = 'org.octopusden.release-management.ft'
+}
+
+configure(subprojects) {
+    apply plugin: 'java-library'
+    java {
+        withJavadocJar()
+        withSourcesJar()
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
+    }
+
+    apply plugin: 'maven-publish'
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+            }
+        }
+    }
+}

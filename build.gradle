@@ -1,0 +1,134 @@
+plugins {
+    id 'groovy'
+    id 'java-gradle-plugin'
+    id 'com.jfrog.artifactory'
+}
+
+//
+version = project.findProperty('buildVersion') ?: '1.0-SNAPSHOT'
+group = 'org.octopusden.release-management'
+
+description "Release management gradle plugin ${version}"
+
+ext {
+    m2localPath = project.hasProperty('m2_local') ? new File(m2_local).toURI().toURL().toString().replaceAll(/^file:\//, 'file:///') : null
+    escrowBuild = m2localPath != null
+}
+
+dependencies {
+    api group: 'org.jfrog.buildinfo', name: 'build-info-extractor-gradle', version: project['jfrog-artifactory.version']
+    api group: 'org.apache.httpcomponents', name: 'httpclient', version: project['httpclient.version']
+    api platform("com.fasterxml.jackson:jackson-bom:${project['jackson.version']}")
+    api group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
+    api group: 'com.platformlib.gradle-wrapper', name: 'platformlib-gradle-wrapper-plugin', version: project['com.platformlib.gradle-wrapper.version']
+}
+
+gradlePlugin {
+    plugins {
+        ReleaseManagementGradlePlugin {
+            id = 'org.octopusden.release-management'
+            implementationClass = 'org.octopusden.release.management.plugins.gradle.ReleaseManagementGradlePlugin'
+        }
+        StagingGradlePlugin {
+            id = 'gradle-staging-plugin'
+            implementationClass = 'org.octopusden.release.management.plugins.gradle.ReleaseManagementGradlePlugin'
+        }
+    }
+}
+
+def resourceDir = "${buildDir}/generated/resources"
+
+sourceSets {
+  main {
+    java { srcDirs = [] }    // no source dirs for the java compiler
+    groovy { srcDirs = ["src/main/groovy", "src/main/java"] }  // compile   everything in src/ with groovy
+    resources {
+        srcDirs += [resourceDir]
+    }
+  }
+}
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+//
+//Publishing section
+//
+
+apply plugin: 'maven-publish'
+
+task exportDependenciesToTeamcity
+
+artifactory {
+
+    def baseUrl = System.getenv('ARTIFACTORY_URL') ?: project.properties.get('artifactoryUrl')
+    if (baseUrl != null) {
+        contextUrl = "${baseUrl}/artifactory" as String
+    }
+
+    publish {
+        repository {
+            repoKey = 'rnd-maven-dev-local'
+            username = System.getenv('ARTIFACTORY_DEPLOYER_USERNAME') ?: project.findProperty('NEXUS_USER')
+            password = System.getenv('ARTIFACTORY_DEPLOYER_PASSWORD') ?: project.findProperty('NEXUS_PASSWORD')
+            maven = true
+        }
+        defaults {
+            publications('ALL_PUBLICATIONS')
+            publishArtifacts = true
+            publishPom = true
+            publishBuildInfo = true
+        }
+    }
+}
+
+publishing {
+    publications {
+        //TODO Remove this publication after migration to standard plugin naming convention
+        mavenJava(MavenPublication) {
+            groupId 'org.octopusden.gradle.plugin'
+            artifactId 'gradle-staging-plugin'
+            from components.java
+        }
+    }
+    repositories {
+        if (escrowBuild) {
+            maven {
+                url m2localPath
+            }
+        }
+    }
+}
+
+if (!escrowBuild) {
+    project.tasks.findByPath("publish")?.dependsOn(":artifactoryPublish")
+}
+
+def supportedGroupIds = project.hasProperty("supportedGroupIds") ? project.property("supportedGroupIds").toString().replace('"', '') : ""
+
+task prepareConfiguration(type : DefaultTask) {
+    doFirst {
+        def targetDir = mkdir(resourceDir)
+        println "Target dir was created in ${targetDir}"
+        def configFile = file("$resourceDir/configuration.properties")
+        configFile.write("supportedGroupIds=$supportedGroupIds", "UTF-8")
+        println "File was generated in ${configFile.absoluteFile}"
+
+        sourceSets.each { srcSet ->
+            println "["+srcSet.name+"]"
+            print "-->Source directories: "+srcSet.allJava.srcDirs+"\n"
+            print "-->Output directories: "+srcSet.output.classesDirs.files+"\n"
+            print "-->Resources directories: "+srcSet.resources.files+"\n"
+            println ""
+        }
+    }
+}
+
+compileJava.dependsOn(prepareConfiguration)
+
+clean {
+    delete("$resourceDir/configuration.properties")
+}
+
+task openStagingRepository
+task closeStagingRepository

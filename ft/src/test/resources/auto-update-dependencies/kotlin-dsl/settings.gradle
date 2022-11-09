@@ -1,0 +1,8 @@
+//
+pluginManagement {
+    plugins {
+        id 'org.octopusden.release-management' version settings['release-management.version']
+    }
+}
+
+rootProject.name = 'uds-ft'

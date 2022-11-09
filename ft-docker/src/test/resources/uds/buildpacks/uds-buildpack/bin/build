@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+layers_dir="$1"
+env_dir="$2/env"
+plan_path="$3"
+
+cat > "$layers_dir/launch.toml" <<EOL
+
+[[processes]]
+type = "web"
+command = "/opt/JDK/17/bin/java org.springframework.boot.loader.JarLauncher"
+default = true
+EOL
+
+exit 0

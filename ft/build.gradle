@@ -1,0 +1,41 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+//
+version = '1.0-SNAPSHOT'
+group = 'org.octopusden.release-management.ft'
+
+description "Release management gradle plugin ${version} functional tests"
+
+dependencies {
+    api group: 'org.slf4j', name: 'slf4j-api', version: project['slf4j.version']
+
+    testImplementation group: 'ch.qos.logback', name: 'logback-classic', version: '1.2.3'
+
+    implementation group: 'com.platformlib', name: 'platformlib-process-local', version: project['platformlib-process.version']
+
+    testImplementation platform("org.junit:junit-bom:${project.'junit-jupiter.version'}")
+    testImplementation "org.junit.jupiter:junit-jupiter-engine"
+    testImplementation "org.junit.jupiter:junit-jupiter-params"
+    testImplementation group: 'org.assertj', name: 'assertj-core', version: project['assertj.version']
+    testImplementation 'org.xmlunit:xmlunit-assertj:2.8.2'
+    testImplementation project(':artifactory-manager')
+
+    implementation platform("com.fasterxml.jackson:jackson-bom:${project['jackson.version']}")
+    implementation "com.fasterxml.jackson.core:jackson-databind"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jsr310"
+    implementation "com.fasterxml.jackson.datatype:jackson-datatype-jdk8"
+    implementation "com.fasterxml.jackson.module:jackson-module-parameter-names"
+    implementation ("com.fasterxml.jackson.module:jackson-module-kotlin") {
+         exclude group:'org.jetbrains.kotlin', module:'kotlin-reflect'
+    }
+    runtimeOnly group: 'org.jetbrains.kotlin', name: 'kotlin-reflect', version: project['kotlin.version']
+}
+
+
+test {
+    useJUnitPlatform()
+    systemProperty 'packageName', project.properties['packageName']
+    testLogging.showStandardStreams = true
+}

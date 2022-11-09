@@ -1,0 +1,31 @@
+//
+plugins {
+    id 'org.jetbrains.kotlin.jvm'
+    id 'maven-publish'
+}
+
+version = '1.0-SNAPSHOT'
+group = 'org.octopusden.f1.automation'
+
+compileKotlin {
+    kotlinOptions.jvmTarget = "1.8"
+}
+
+dependencies {
+    api 'org.jfrog.artifactory.client:artifactory-java-client-services:2.9.1'
+}
+
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}
+

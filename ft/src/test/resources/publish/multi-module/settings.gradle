@@ -1,0 +1,11 @@
+//
+pluginManagement {
+    plugins {
+        id 'org.octopusden.release-management' version settings['release-management.version']
+    }
+}
+
+rootProject.name = 'multi-module'
+
+include ':module-1'
+include ':module-2'

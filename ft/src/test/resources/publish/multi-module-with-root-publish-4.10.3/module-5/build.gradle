@@ -1,0 +1,15 @@
+apply plugin: 'java'
+
+dependencies {
+    compile group: 'com.google.guava', name: 'guava', version: '30.1-jre'
+}
+
+apply plugin: 'maven-publish'
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}

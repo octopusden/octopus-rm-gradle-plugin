@@ -1,0 +1,22 @@
+//
+plugins {
+    id 'org.octopusden.release-management'
+    id 'java-library'
+}
+
+group = 'org.octopusden.release-management.ft'
+
+apply plugin: 'maven-publish'
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}

@@ -1,0 +1,24 @@
+//
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+dependencies {
+    api "com.${project["packageName"]}.dbsm.cloud:dbsm-cloud-api:${project['dbsm-cloud-api.version']}"
+}
+
+java {
+    withJavadocJar()
+    withSourcesJar()
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}
