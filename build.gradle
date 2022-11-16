@@ -1,11 +1,13 @@
 plugins {
+    id 'maven-publish'
+    id 'signing'
+    id("io.github.gradle-nexus.publish-plugin")
     id 'groovy'
     id 'java-gradle-plugin'
     id 'com.jfrog.artifactory'
 }
 
-//
-version = project.findProperty('buildVersion') ?: '1.0-SNAPSHOT'
+version = project.findProperty('buildVersion') ?: System.getenv("BUILD_VERSION") ?: '1.0-SNAPSHOT'
 group = 'org.octopusden.release-management'
 
 description "Release management gradle plugin ${version}"
@@ -48,57 +50,71 @@ sourceSets {
   }
 }
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
+java {
+    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    withJavadocJar()
+    withSourcesJar()
+}
 //
 //Publishing section
 //
 
-apply plugin: 'maven-publish'
-
 task exportDependenciesToTeamcity
 
-artifactory {
-
-    def baseUrl = System.getenv('ARTIFACTORY_URL') ?: project.properties.get('artifactoryUrl')
-    if (baseUrl != null) {
-        contextUrl = "${baseUrl}/artifactory" as String
-    }
-
-    publish {
-        repository {
-            repoKey = 'rnd-maven-dev-local'
-            username = System.getenv('ARTIFACTORY_DEPLOYER_USERNAME') ?: project.findProperty('NEXUS_USER')
-            password = System.getenv('ARTIFACTORY_DEPLOYER_PASSWORD') ?: project.findProperty('NEXUS_PASSWORD')
-            maven = true
-        }
-        defaults {
-            publications('ALL_PUBLICATIONS')
-            publishArtifacts = true
-            publishPom = true
-            publishBuildInfo = true
+nexusPublishing {
+    repositories {
+        sonatype {
+            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+            username.set(System.getenv("MAVEN_USERNAME"))
+            password.set(System.getenv("MAVEN_PASSWORD"))
         }
     }
 }
 
 publishing {
     publications {
-        //TODO Remove this publication after migration to standard plugin naming convention
-        mavenJava(MavenPublication) {
-            groupId 'org.octopusden.gradle.plugin'
-            artifactId 'gradle-staging-plugin'
-            from components.java
-        }
-    }
-    repositories {
-        if (escrowBuild) {
-            maven {
-                url m2localPath
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+            pom {
+                name.set(project.name)
+                description.set("Octopus module for testing Maven release workflow")
+                url.set("https://github.com/kzaporozhtsev/octopus-maven-test.git")
+                licenses {
+                    license {
+                        name.set("The Apache License, Version 2.0")
+                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                    }
+                }
+                scm {
+                    url.set("https://github.com/kzaporozhtsev/octopus-maven-test.git")
+                    connection.set("scm:git://github.com/kzaporozhtsev/octopus-maven-test.git")
+                }
+                developers {
+                    developer {
+                        id.set("octopus")
+                        name.set("octopus")
+                    }
+                }
             }
         }
     }
 }
+
+if (!project.version.toString().endsWith("SNAPSHOT", true)) {
+    signing {
+        sign(publishing.publications["mavenJava"])
+        def signingKey = findProperty("signingKey")
+        def signingPassword = findProperty("signingPassword")
+        useInMemoryPgpKeys(
+                signingKey,
+                signingPassword
+        )
+    }
+}
+
+//END Publishing section
 
 if (!escrowBuild) {
     project.tasks.findByPath("publish")?.dependsOn(":artifactoryPublish")

@@ -1,0 +1,55 @@
+name: BUILD AND RELEASE
+
+on:
+  push:
+    tags:
+      - v**
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: Prod
+
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'adopt'
+        cache: 'gradle'
+    - name: Validate Gradle wrapper
+      uses: gradle/wrapper-validation-action@v1
+    - uses: actions-ecosystem/action-regex-match@v2
+      id: version
+      name: Prepare a version from a tag
+      with:
+        text: ${{  github.ref_name }}
+        regex: '^v(.*)$'
+        flags: gm
+    - name: GitHub Tag Name
+      run: |
+        echo "Current version: ${{ steps.version.outputs.group1 }}"
+    - name: Build with Gradle
+      run: ./gradlew build --no-daemon
+      env:
+        BUILD_VERSION: ${{ steps.version.outputs.group1 }}
+    - name: Publish to staging or snapshot
+      if: ${{ endsWith(steps.version.outputs.group1, 'SNAPSHOT') }}
+      run: ./gradlew publishToSonatype --info
+      env:
+        MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+        MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+        ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_PRIVATE_KEY }}
+        ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.GPG_PASSPHRASE }}
+        BUILD_VERSION: ${{ steps.version.outputs.group1 }}
+    - name: Publish to release
+      if: ${{ !endsWith(steps.version.outputs.group1, 'SNAPSHOT') }}
+      run: ./gradlew closeAndReleaseSonatypeStagingRepository --info
+      env:
+        MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+        MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+        SONATYPE_PROFILE_ID: ${{ secrets.SONATYPE_PROFILE_ID }}
+        ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_PRIVATE_KEY }}
+        ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.GPG_PASSPHRASE }}
+        BUILD_VERSION: ${{ steps.version.outputs.group1 }}
