@@ -75,26 +75,26 @@ nexusPublishing {
 
 publishing {
     publications {
-        create<MavenPublication>("mavenJava") {
-            from(components["java"])
+        maven(MavenPublication) {
+            from components.java
             pom {
-                name.set(project.name)
-                description.set("Octopus module for testing Maven release workflow")
-                url.set("https://github.com/kzaporozhtsev/octopus-maven-test.git")
+                name = project.name
+                description = "Octopus module for testing Maven release workflow"
+                url = "https://github.com/kzaporozhtsev/octopus-maven-test.git"
                 licenses {
                     license {
-                        name.set("The Apache License, Version 2.0")
-                        url.set("http://www.apache.org/licenses/LICENSE-2.0.txt")
+                        name = "The Apache License, Version 2.0"
+                        url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
                     }
                 }
                 scm {
-                    url.set("https://github.com/kzaporozhtsev/octopus-maven-test.git")
-                    connection.set("scm:git://github.com/kzaporozhtsev/octopus-maven-test.git")
+                    url = "https://github.com/kzaporozhtsev/octopus-maven-test.git"
+                    connection = "scm:git://github.com/kzaporozhtsev/octopus-maven-test.git"
                 }
                 developers {
                     developer {
-                        id.set("octopus")
-                        name.set("octopus")
+                        id = "octopus"
+                        name = "octopus"
                     }
                 }
             }
@@ -102,7 +102,7 @@ publishing {
     }
 }
 
-if (!project.version.toString().endsWith("SNAPSHOT", true)) {
+if (!project.version.toString().toUpperCase().endsWith("SNAPSHOT")) {
     signing {
         sign(publishing.publications["mavenJava"])
         def signingKey = findProperty("signingKey")
