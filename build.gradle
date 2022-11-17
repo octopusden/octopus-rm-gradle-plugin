@@ -104,7 +104,7 @@ publishing {
 
 if (!project.version.toString().toUpperCase().endsWith("SNAPSHOT")) {
     signing {
-        sign(publishing.publications["mavenJava"])
+        sign publishing.publications.mavenJava
         def signingKey = findProperty("signingKey")
         def signingPassword = findProperty("signingPassword")
         useInMemoryPgpKeys(
