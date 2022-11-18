@@ -60,10 +60,13 @@ java {
 //Publishing section
 //
 
+apply plugin: 'maven-publish'
+
 task exportDependenciesToTeamcity
 
 
 if (!project.findProperty("public")) {
+
     artifactory {
 
         def baseUrl = System.getenv('ARTIFACTORY_URL') ?: project.properties.get('artifactoryUrl')
@@ -104,6 +107,8 @@ if (!project.findProperty("public")) {
 publishing {
     publications {
         maven(MavenPublication) {
+            groupId 'org.octopusden.gradle.plugin'
+            artifactId 'gradle-staging-plugin'
             from components.java
             pom {
                 name = project.name
