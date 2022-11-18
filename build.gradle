@@ -8,7 +8,7 @@ plugins {
 }
 
 version = project.findProperty('buildVersion') ?: System.getenv("BUILD_VERSION") ?: '1.0-SNAPSHOT'
-group = 'org.octopusden.release-management'
+group = 'io.github.ozonophore'
 
 description "Release management gradle plugin ${version}"
 
@@ -62,15 +62,43 @@ java {
 
 task exportDependenciesToTeamcity
 
-nexusPublishing {
-    repositories {
-        sonatype {
-            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
-            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
-            username.set(System.getenv("MAVEN_USERNAME"))
-            password.set(System.getenv("MAVEN_PASSWORD"))
+
+if (!project.findProperty("public")) {
+    artifactory {
+
+        def baseUrl = System.getenv('ARTIFACTORY_URL') ?: project.properties.get('artifactoryUrl')
+        if (baseUrl != null) {
+            contextUrl = "${baseUrl}/artifactory" as String
+        }
+
+        publish {
+            repository {
+                repoKey = 'rnd-maven-dev-local'
+                username = System.getenv('ARTIFACTORY_DEPLOYER_USERNAME') ?: project.findProperty('NEXUS_USER')
+                password = System.getenv('ARTIFACTORY_DEPLOYER_PASSWORD') ?: project.findProperty('NEXUS_PASSWORD')
+                maven = true
+            }
+            defaults {
+                publications('ALL_PUBLICATIONS')
+                publishArtifacts = true
+                publishPom = true
+                publishBuildInfo = true
+            }
         }
     }
+} else {
+
+    nexusPublishing {
+        repositories {
+            sonatype {
+                nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+                snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+                username.set(System.getenv("MAVEN_USERNAME"))
+                password.set(System.getenv("MAVEN_PASSWORD"))
+            }
+        }
+    }
+
 }
 
 publishing {
