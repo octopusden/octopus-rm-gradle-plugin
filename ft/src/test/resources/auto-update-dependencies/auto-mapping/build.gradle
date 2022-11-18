@@ -10,6 +10,8 @@ autoUpdateDependencies {
     autoMapping = true
 }
 
+println("======= : " + System.getenv("MAVEN_USERNAME"))
+
 dumpAutoUpdateDependencies {
     outputFile file("$buildDir/auto-update-dependencies-configuration.json")
 }
