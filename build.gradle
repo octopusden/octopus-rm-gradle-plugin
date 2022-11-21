@@ -148,7 +148,7 @@ publishing {
 
 if (!project.version.toString().toUpperCase().endsWith("SNAPSHOT")) {
     signing {
-        sign publishing.publications.stagingPlugin, publishing.publications.releaseManagementPlugin
+        sign publishing.publications.stagingPlugin, publishing.publications.releaseManagementPlugin, gradlePlugin.plugins.ReleaseManagementGradlePlugin, gradlePlugin.plugins.StagingGradlePlugin
         def signingKey = findProperty("signingKey")
         def signingPassword = findProperty("signingPassword")
         useInMemoryPgpKeys(
