@@ -134,6 +134,7 @@ publishing {
 
 if (!project.version.toString().toUpperCase().endsWith("SNAPSHOT")) {
     signing {
+        sign publishing.publications.stagingPlugin, publishing.publications.releaseManagementPlugin
         def signingKey = findProperty("signingKey")
         def signingPassword = findProperty("signingPassword")
         useInMemoryPgpKeys(
