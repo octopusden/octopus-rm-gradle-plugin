@@ -100,40 +100,49 @@ nexusPublishing {
             snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
             username.set(System.getenv("MAVEN_USERNAME"))
             password.set(System.getenv("MAVEN_PASSWORD"))
-            stagingProfileId.set(System.getenv("SONATYPE_PROFILE_ID"))
         }
     }
 }
 
 //}
 
+def stagingPluginName = "gradle-staging-plugin"
+
+def createPom(pomName) {
+    return {
+        name = pomName
+        description = "Octopus module for testing Maven release workflow"
+        url = "https://github.com/kzaporozhtsev/octopus-maven-test.git"
+        licenses {
+            license {
+                name = "The Apache License, Version 2.0"
+                url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+            }
+        }
+        scm {
+            url = "https://github.com/kzaporozhtsev/octopus-maven-test.git"
+            connection = "scm:git://github.com/kzaporozhtsev/octopus-maven-test.git"
+        }
+        developers {
+            developer {
+                id = "octopus"
+                name = "octopus"
+            }
+        }
+    }
+}
+
 publishing {
     publications {
-        maven(MavenPublication) {
+        stagingPlugin(MavenPublication) {
             groupId 'org.octopusden.gradle.plugin'
-            artifactId 'gradle-staging-plugin'
+            artifactId = stagingPluginName
             from components.java
-            pom {
-                name = project.name
-                description = "Octopus module for testing Maven release workflow"
-                url = "https://github.com/kzaporozhtsev/octopus-maven-test.git"
-                licenses {
-                    license {
-                        name = "The Apache License, Version 2.0"
-                        url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
-                    }
-                }
-                scm {
-                    url = "https://github.com/kzaporozhtsev/octopus-maven-test.git"
-                    connection = "scm:git://github.com/kzaporozhtsev/octopus-maven-test.git"
-                }
-                developers {
-                    developer {
-                        id = "octopus"
-                        name = "octopus"
-                    }
-                }
-            }
+            pom createPom(stagingPluginName)
+        }
+        releaseManagementPlugin(MavenPublication) {
+            from components.java
+            pom createPom(project.name)
         }
     }
 }
