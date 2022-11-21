@@ -38,7 +38,7 @@ gradlePlugin {
             implementationClass = 'org.octopusden.release.management.plugins.gradle.ReleaseManagementGradlePlugin'
         }
         StagingGradlePlugin {
-            id = 'org.octopusden.gradle.plugin'
+            id = 'gradle-staging-plugin'
             implementationClass = 'org.octopusden.release.management.plugins.gradle.ReleaseManagementGradlePlugin'
         }
     }
@@ -133,7 +133,7 @@ def createPom(pomName) {
 publishing {
     publications {
         stagingPlugin(MavenPublication) {
-            groupId 'org.octopusden.gradle.plugin'
+            groupId "org.octopusden.gradle.plugin"
             artifactId = stagingPluginName
             from components.java
             pom createPom(stagingPluginName)
