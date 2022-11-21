@@ -17,6 +17,12 @@ ext {
     escrowBuild = m2localPath != null
 }
 
+repositories {
+    maven {
+        url "https://plugins.gradle.org/m2/"
+    }
+}
+
 dependencies {
     api group: 'org.jfrog.buildinfo', name: 'build-info-extractor-gradle', version: project['jfrog-artifactory.version']
     api group: 'org.apache.httpcomponents', name: 'httpclient', version: project['httpclient.version']
