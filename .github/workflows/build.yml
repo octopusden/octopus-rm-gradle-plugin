@@ -31,7 +31,7 @@ jobs:
       run: |
         echo "Current version: ${{ steps.version.outputs.group1 }}"
     - name: Build with Gradle
-      run: ./gradlew build --no-daemon
+      run: ./gradlew build --no-daemon --info
       env:
         BUILD_VERSION: ${{ steps.version.outputs.group1 }}
     - name: Publish to staging or snapshot
