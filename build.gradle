@@ -126,7 +126,7 @@ publishing {
             pom createPom(stagingPluginName)
         }
         releaseManagementPlugin(MavenPublication) {
-            artifactId = "${stagingPluginName}.gradle.plugin"
+            artifactId = "${project.name}.gradle.plugin"
             from components.java
             pom createPom(project.name)
         }
