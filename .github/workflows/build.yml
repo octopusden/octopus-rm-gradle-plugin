@@ -45,7 +45,7 @@ jobs:
         BUILD_VERSION: ${{ steps.version.outputs.group1 }}
     - name: Publish to release
       if: ${{ !endsWith(steps.version.outputs.group1, 'SNAPSHOT') }}
-      run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository --info
+      run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository --info --stacktrace
       env:
         MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
         MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
