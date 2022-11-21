@@ -70,28 +70,28 @@ apply plugin: 'maven-publish'
 
 task exportDependenciesToTeamcity
 
-//artifactory {
-//
-//    def baseUrl = System.getenv('ARTIFACTORY_URL') ?: project.properties.get('artifactoryUrl')
-//    if (baseUrl != null) {
-//        contextUrl = "${baseUrl}/artifactory" as String
-//    }
-//
-//    publish {
-//        repository {
-//            repoKey = 'rnd-maven-dev-local'
-//            username = System.getenv('ARTIFACTORY_DEPLOYER_USERNAME') ?: project.findProperty('NEXUS_USER')
-//            password = System.getenv('ARTIFACTORY_DEPLOYER_PASSWORD') ?: project.findProperty('NEXUS_PASSWORD')
-//            maven = true
-//        }
-//        defaults {
-//            publications('ALL_PUBLICATIONS')
-//            publishArtifacts = true
-//            publishPom = true
-//            publishBuildInfo = true
-//        }
-//    }
-//}
+artifactory {
+
+    def baseUrl = System.getenv('ARTIFACTORY_URL') ?: project.properties.get('artifactoryUrl')
+    if (baseUrl != null) {
+        contextUrl = "${baseUrl}/artifactory" as String
+    }
+
+    publish {
+        repository {
+            repoKey = 'rnd-maven-dev-local'
+            username = System.getenv('ARTIFACTORY_DEPLOYER_USERNAME') ?: project.findProperty('NEXUS_USER')
+            password = System.getenv('ARTIFACTORY_DEPLOYER_PASSWORD') ?: project.findProperty('NEXUS_PASSWORD')
+            maven = true
+        }
+        defaults {
+            publications('ALL_PUBLICATIONS')
+            publishArtifacts = true
+            publishPom = true
+            publishBuildInfo = true
+        }
+    }
+}
 
 nexusPublishing {
     repositories {
