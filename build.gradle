@@ -31,19 +31,6 @@ dependencies {
     api group: 'com.platformlib.gradle-wrapper', name: 'platformlib-gradle-wrapper-plugin', version: project['com.platformlib.gradle-wrapper.version']
 }
 
-gradlePlugin {
-    plugins {
-        ReleaseManagementGradlePlugin {
-            id = 'org.octopusden.release-management'
-            implementationClass = 'org.octopusden.release.management.plugins.gradle.ReleaseManagementGradlePlugin'
-        }
-        StagingGradlePlugin {
-            id = 'gradle-staging-plugin'
-            implementationClass = 'org.octopusden.release.management.plugins.gradle.ReleaseManagementGradlePlugin'
-        }
-    }
-}
-
 def resourceDir = "${buildDir}/generated/resources"
 
 sourceSets {
@@ -103,8 +90,6 @@ nexusPublishing {
         }
     }
 }
-
-//}
 
 def stagingPluginName = "gradle-staging-plugin"
 
