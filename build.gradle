@@ -37,10 +37,10 @@ gradlePlugin {
             id = 'org.octopusden.release-management'
             implementationClass = 'org.octopusden.release.management.plugins.gradle.ReleaseManagementGradlePlugin'
         }
-        StagingGradlePlugin {
-            id = 'gradle-staging-plugin'
-            implementationClass = 'org.octopusden.release.management.plugins.gradle.ReleaseManagementGradlePlugin'
-        }
+//        StagingGradlePlugin {
+//            id = 'gradle-staging-plugin'
+//            implementationClass = 'org.octopusden.release.management.plugins.gradle.ReleaseManagementGradlePlugin'
+//        }
     }
 }
 
