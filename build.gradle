@@ -121,6 +121,8 @@ publishing {
         }
         withType(MavenPublication) {
             pom {
+                name = project.name
+                description = "Octopus module for a release managnemt"
                 url = "https://github.com/kzaporozhtsev/octopus-rm-gradle-plugin.git"
                 licenses {
                     license {
