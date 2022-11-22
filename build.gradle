@@ -32,16 +32,15 @@ dependencies {
 }
 
 gradlePlugin {
-    automatedPublishing = false
     plugins {
         ReleaseManagementGradlePlugin {
             id = 'org.octopusden.release-management'
             implementationClass = 'org.octopusden.release.management.plugins.gradle.ReleaseManagementGradlePlugin'
         }
-//        StagingGradlePlugin {
-//            id = 'gradle-staging-plugin'
-//            implementationClass = 'org.octopusden.release.management.plugins.gradle.ReleaseManagementGradlePlugin'
-//        }
+        StagingGradlePlugin {
+            id = 'gradle-staging-plugin'
+            implementationClass = 'org.octopusden.release.management.plugins.gradle.ReleaseManagementGradlePlugin'
+        }
     }
 }
 
@@ -107,10 +106,8 @@ nexusPublishing {
 
 publishing {
     publications {
-        maven(MavenPublication) {
-            artifactId = project.name
-            from components.java
-            pom {
+        withType(MavenPublication) {
+           pom {
                 name = project.name
                 description = "Octopus module for testing Maven release workflow"
                 url = "https://github.com/kzaporozhtsev/octopus-rm-gradle-plugin.git"
@@ -132,7 +129,6 @@ publishing {
                 }
             }
         }
-
     }
 }
 
