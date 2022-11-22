@@ -40,8 +40,8 @@ gradlePlugin {
             implementationClass = 'org.octopusden.release.management.plugins.gradle.ReleaseManagementGradlePlugin'
         }
         StagingGradlePlugin {
-            id = 'gradle-staging-plugin'
-            displayName = 'org.octopusden.gradle-staging-plugin'
+            id = 'org.octopusden.gradle-staging-plugin'
+            displayName = 'gradle-staging-plugin'
             description = 'Octopus module for release magagement plugin'
             implementationClass = 'org.octopusden.release.management.plugins.gradle.ReleaseManagementGradlePlugin'
         }
