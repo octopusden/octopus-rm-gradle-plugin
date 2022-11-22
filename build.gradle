@@ -32,6 +32,7 @@ dependencies {
 }
 
 gradlePlugin {
+    automatedPublishing = false
     plugins {
         ReleaseManagementGradlePlugin {
             id = 'org.octopusden.release-management'
@@ -131,6 +132,7 @@ publishing {
                 }
             }
         }
+
     }
 }
 
