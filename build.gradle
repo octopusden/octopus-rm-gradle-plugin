@@ -39,11 +39,13 @@ gradlePlugin {
             description = 'Octopus module for release magagement plugin'
             implementationClass = 'org.octopusden.release.management.plugins.gradle.ReleaseManagementGradlePlugin'
         }
-        StagingGradlePlugin {
-            id = 'org.octopusden.gradle-staging-plugin'
-            displayName = 'gradle-staging-plugin'
-            description = 'Octopus module for release magagement plugin'
-            implementationClass = 'org.octopusden.release.management.plugins.gradle.ReleaseManagementGradlePlugin'
+        if (!project.hasProperty("nexus")) {
+            StagingGradlePlugin {
+                id = 'gradle-staging-plugin'
+                displayName = 'gradle-staging-plugin'
+                description = 'Octopus module for release magagement plugin'
+                implementationClass = 'org.octopusden.release.management.plugins.gradle.ReleaseManagementGradlePlugin'
+            }
         }
     }
 }
