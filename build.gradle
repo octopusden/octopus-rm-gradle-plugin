@@ -1,7 +1,8 @@
 plugins {
     id 'maven-publish'
     id 'signing'
-    id("io.github.gradle-nexus.publish-plugin")
+    //id("io.github.gradle-nexus.publish-plugin")
+    id 'com.gradle.plugin-publish' version '1.1.0'
     id 'groovy'
     id 'java-gradle-plugin'
     id 'com.jfrog.artifactory'
@@ -29,6 +30,14 @@ dependencies {
     api platform("com.fasterxml.jackson:jackson-bom:${project['jackson.version']}")
     api group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
     api group: 'com.platformlib.gradle-wrapper', name: 'platformlib-gradle-wrapper-plugin', version: project['com.platformlib.gradle-wrapper.version']
+}
+
+pluginBundle {  // Removed in Gradle 8+
+    website = 'https://github.com/kzaporozhtsev'
+    vcsUrl = 'https://github.com/johndoe/GradlePlugins'
+
+    // Individual descriptions for plugins can be set via the java-gradle-plugin, see below.
+    description = 'Greetings from here!'
 }
 
 gradlePlugin {
@@ -93,16 +102,16 @@ artifactory {
     }
 }
 
-nexusPublishing {
-    repositories {
-        sonatype {
-            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
-            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
-            username.set(System.getenv("MAVEN_USERNAME"))
-            password.set(System.getenv("MAVEN_PASSWORD"))
-        }
-    }
-}
+//nexusPublishing {
+//    repositories {
+//        sonatype {
+//            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+//            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+//            username.set(System.getenv("MAVEN_USERNAME"))
+//            password.set(System.getenv("MAVEN_PASSWORD"))
+//        }
+//    }
+//}
 
 def stagingPluginName = "gradle-staging-plugin"
 
@@ -130,21 +139,21 @@ def createPom(pomName) {
     }
 }
 
-publishing {
-    publications {
-        stagingPlugin(MavenPublication) {
-            groupId "org.octopusden.gradle.plugin"
-            artifactId = stagingPluginName
-            from components.java
-            pom createPom(stagingPluginName)
-        }
-        releaseManagementPlugin(MavenPublication) {
-            artifactId = project.name
-            from components.java
-            pom createPom(project.name)
-        }
-    }
-}
+//publishing {
+//    publications {
+////        stagingPlugin(MavenPublication) {
+////            groupId "org.octopusden.gradle.plugin"
+////            artifactId = stagingPluginName
+////            from components.java
+////            pom createPom(stagingPluginName)
+////        }
+//        maven(MavenPublication) {
+//            artifactId = project.name
+//            from components.java
+//            pom createPom(project.name)
+//        }
+//    }
+//}
 
 if (!project.version.toString().toUpperCase().endsWith("SNAPSHOT")) {
     signing {
