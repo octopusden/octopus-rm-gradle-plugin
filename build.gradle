@@ -135,6 +135,34 @@ publishing {
                 }
             }
         }
+        if (!project.hasProperty("nexus")) {
+            staging(MavenPublication) {
+                artifactId = 'gradle-staging-plugin'
+                group = 'org.octopusden.gradle.plugin'
+                from components.java
+                pom {
+                    name = 'gradle-staging-plugin'
+                    description = "Octopus module for testing Maven release workflow"
+                    url = "https://github.com/kzaporozhtsev/octopus-rm-gradle-plugin.git"
+                    licenses {
+                        license {
+                            name = "The Apache License, Version 2.0"
+                            url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                        }
+                    }
+                    scm {
+                        url = "https://github.com/kzaporozhtsev/octopus-rm-gradle-plugin.git"
+                        connection = "scm:git://github.com/kzaporozhtsev/octopus-rm-gradle-plugin.git"
+                    }
+                    developers {
+                        developer {
+                            id = "octopus"
+                            name = "octopus"
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
