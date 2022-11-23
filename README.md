@@ -27,3 +27,7 @@ The required parameters to test:\
 ```shell
 ./gradlew test -PpackageName=org.octopusden
 ```
+
+## Parameters
+
+- <b>nexus</b> - The parameter to mark that it needs to publish two plugins or one(without it two plugins will be published) 

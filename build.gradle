@@ -39,6 +39,7 @@ gradlePlugin {
             description = 'Octopus module for release magagement plugin'
             implementationClass = 'org.octopusden.release.management.plugins.gradle.ReleaseManagementGradlePlugin'
         }
+        // TODO: It was left for backward compatible. Should be to remove after complete transition to new plugin and adjustmentetion of tests
         if (!project.hasProperty("nexus")) {
             StagingGradlePlugin {
                 id = 'gradle-staging-plugin'
@@ -112,6 +113,7 @@ nexusPublishing {
 
 publishing {
     publications {
+        // TODO: It was left for backward compatible. Should be to remove after complete transition to new plugin and adjustmentetion of tests
         if (!project.hasProperty("nexus")) {
             mavenJava(MavenPublication) {
                 groupId 'org.octopusden.gradle.plugin'
