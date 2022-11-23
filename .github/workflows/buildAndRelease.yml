@@ -1,0 +1,51 @@
+name: BUILD AND RELEASE
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+jobs:
+  build:
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    environment: Prod
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK 11
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'adopt'
+        cache: 'gradle'
+    - name: Validate Gradle wrapper
+      uses: gradle/wrapper-validation-action@v1
+    - uses: actions-ecosystem/action-regex-match@v2
+      id: version
+      name: Prepare a version from a tag
+      with:
+        text: ${{  github.ref_name }}
+        regex: '^v(.*)$'
+        flags: gm
+    - name: GitHub Tag Name
+      run: |
+        echo "Current version: ${{ steps.version.outputs.group1 }}"
+    - name: Build with Gradle
+      run: ./gradlew build --no-daemon --info
+      env:
+        BUILD_VERSION: ${{ steps.version.outputs.group1 }}
+    - name: Publish
+      if: ${{ !endsWith(steps.version.outputs.group1, 'SNAPSHOT') }}
+      run: ./gradlew -Pnexus=true publishToSonatype closeAndReleaseSonatypeStagingRepository
+      env:
+        MAVEN_USERNAME: ${{ secrets.OSSRH_USERNAME }}
+        MAVEN_PASSWORD: ${{ secrets.OSSRH_TOKEN }}
+        ORG_GRADLE_PROJECT_signingKey: ${{ secrets.GPG_PRIVATE_KEY }}
+        ORG_GRADLE_PROJECT_signingPassword: ${{ secrets.GPG_PASSPHRASE }}
+        BUILD_VERSION: ${{ steps.version.outputs.group1 }}
+    - name: Create Release
+      uses: marvinpinto/action-automatic-releases@master
+      with:
+        repo_token: ${{ secrets.GITHUB_TOKEN }}
+        prerelease: false
+        automatic_release_tag: v${{ steps.version.outputs.group1 }}
