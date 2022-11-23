@@ -1,11 +1,13 @@
 plugins {
+    id 'maven-publish'
+    id 'signing'
+    id("io.github.gradle-nexus.publish-plugin")
     id 'groovy'
     id 'java-gradle-plugin'
     id 'com.jfrog.artifactory'
 }
 
-//
-version = project.findProperty('buildVersion') ?: '1.0-SNAPSHOT'
+version = project.findProperty('buildVersion') ?: System.getenv("BUILD_VERSION") ?: '1.0-SNAPSHOT'
 group = 'org.octopusden.release-management'
 
 description "Release management gradle plugin ${version}"
@@ -13,6 +15,12 @@ description "Release management gradle plugin ${version}"
 ext {
     m2localPath = project.hasProperty('m2_local') ? new File(m2_local).toURI().toURL().toString().replaceAll(/^file:\//, 'file:///') : null
     escrowBuild = m2localPath != null
+}
+
+repositories {
+    maven {
+        url "https://plugins.gradle.org/m2/"
+    }
 }
 
 dependencies {
@@ -27,11 +35,18 @@ gradlePlugin {
     plugins {
         ReleaseManagementGradlePlugin {
             id = 'org.octopusden.release-management'
+            displayName = 'org.octopusden.release-management'
+            description = 'Octopus module for release magagement plugin'
             implementationClass = 'org.octopusden.release.management.plugins.gradle.ReleaseManagementGradlePlugin'
         }
-        StagingGradlePlugin {
-            id = 'gradle-staging-plugin'
-            implementationClass = 'org.octopusden.release.management.plugins.gradle.ReleaseManagementGradlePlugin'
+        // TODO: It was left for backward compatible. Should be to remove after complete transition to new plugin and adjustmentetion of tests
+        if (!project.hasProperty("nexus")) {
+            StagingGradlePlugin {
+                id = 'gradle-staging-plugin'
+                displayName = 'gradle-staging-plugin'
+                description = 'Octopus module for release magagement plugin'
+                implementationClass = 'org.octopusden.release.management.plugins.gradle.ReleaseManagementGradlePlugin'
+            }
         }
     }
 }
@@ -48,9 +63,12 @@ sourceSets {
   }
 }
 
-sourceCompatibility = 1.8
-targetCompatibility = 1.8
-
+java {
+    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    withJavadocJar()
+    withSourcesJar()
+}
 //
 //Publishing section
 //
@@ -82,23 +100,66 @@ artifactory {
     }
 }
 
-publishing {
-    publications {
-        //TODO Remove this publication after migration to standard plugin naming convention
-        mavenJava(MavenPublication) {
-            groupId 'org.octopusden.gradle.plugin'
-            artifactId 'gradle-staging-plugin'
-            from components.java
+nexusPublishing {
+    repositories {
+        sonatype {
+            nexusUrl.set(uri("https://s01.oss.sonatype.org/service/local/"))
+            snapshotRepositoryUrl.set(uri("https://s01.oss.sonatype.org/content/repositories/snapshots/"))
+            username.set(System.getenv("MAVEN_USERNAME"))
+            password.set(System.getenv("MAVEN_PASSWORD"))
         }
     }
-    repositories {
-        if (escrowBuild) {
-            maven {
-                url m2localPath
+}
+
+publishing {
+    publications {
+        // TODO: It was left for backward compatible. Should be to remove after complete transition to new plugin and adjustmentetion of tests
+        if (!project.hasProperty("nexus")) {
+            mavenJava(MavenPublication) {
+                groupId 'org.octopusden.gradle.plugin'
+                artifactId 'gradle-staging-plugin'
+                from components.java
+            }
+        }
+        withType(MavenPublication) {
+            pom {
+                name = project.name
+                description = "Octopus module for a release managnemt"
+                url = "https://github.com/kzaporozhtsev/octopus-rm-gradle-plugin.git"
+                licenses {
+                    license {
+                        name = "The Apache License, Version 2.0"
+                        url = "http://www.apache.org/licenses/LICENSE-2.0.txt"
+                    }
+                }
+                scm {
+                    url = "https://github.com/kzaporozhtsev/octopus-rm-gradle-plugin.git"
+                    connection = "scm:git://github.com/kzaporozhtsev/octopus-rm-gradle-plugin.git"
+                }
+                developers {
+                    developer {
+                        id = "octopus"
+                        name = "octopus"
+                    }
+                }
             }
         }
     }
 }
+
+if (!project.version.toString().toUpperCase().endsWith("SNAPSHOT")) {
+    signing {
+        sign publishing.publications
+        def signingKey = findProperty("signingKey")
+        def signingPassword = findProperty("signingPassword")
+        useInMemoryPgpKeys(
+                signingKey,
+                signingPassword
+        )
+    }
+}
+
+//END Publishing section
 
 if (!escrowBuild) {
     project.tasks.findByPath("publish")?.dependsOn(":artifactoryPublish")
