@@ -113,7 +113,7 @@ nexusPublishing {
 
 publishing {
     publications {
-        // TODO: It was left for backward compatible. Should be to remove after complete transition to new plugin and adjustmentetion of tests
+        // TODO: It was left for backward compatibility. Should be removed after complete transition to a new plugin and fixing tests
         if (!project.hasProperty("nexus")) {
             mavenJava(MavenPublication) {
                 groupId 'org.octopusden.gradle.plugin'
@@ -124,7 +124,7 @@ publishing {
         withType(MavenPublication) {
             pom {
                 name = project.name
-                description = "Octopus module for a release managnemt"
+                description = "Octopus module for release management"
                 url = "https://github.com/octopusden/octopus-rm-gradle-plugin.git"
                 licenses {
                     license {
