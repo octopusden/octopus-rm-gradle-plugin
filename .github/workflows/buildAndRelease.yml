@@ -28,6 +28,11 @@ jobs:
         text: ${{ github.event.client_payload.build_version }}
         regex: '^v(.*)$'
         flags: gm
+    - name: Check version format
+      if: ${{ steps.version.outputs.group1 == '' }}
+      run: |
+        echo "Version must to match format 'v([0-9]+\.[0-9]+\.[0-9]+)$' but has value ${{ github.event.client_payload.build_version }}"
+        exit 1
     - name: GitHub Tag Name
       run: |
         echo "Current version: ${{ steps.version.outputs.group1 }}"
@@ -49,4 +54,4 @@ jobs:
       with:
         repo_token: ${{ secrets.GITHUB_TOKEN }}
         prerelease: false
-        automatic_release_tag: v${{ github.event.client_payload.build_version }}
+        automatic_release_tag: ${{ github.event.client_payload.build_version }}
