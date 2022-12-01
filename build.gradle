@@ -8,7 +8,7 @@ plugins {
 }
 
 version = project.findProperty('buildVersion') ?: System.getenv("BUILD_VERSION") ?: '1.0-SNAPSHOT'
-group = 'org.octopusden.release-management'
+group = 'org.octopusden.octopus-release-management'
 
 description "Release management gradle plugin ${version}"
 
@@ -34,8 +34,8 @@ dependencies {
 gradlePlugin {
     plugins {
         ReleaseManagementGradlePlugin {
-            id = 'org.octopusden.release-management'
-            displayName = 'org.octopusden.release-management'
+            id = 'org.octopusden.octopus-release-management'
+            displayName = 'org.octopusden.octopus-release-management'
             description = 'Octopus module for release magagement plugin'
             implementationClass = 'org.octopusden.release.management.plugins.gradle.ReleaseManagementGradlePlugin'
         }
@@ -116,7 +116,7 @@ publishing {
         // TODO: It was left for backward compatibility. Should be removed after complete transition to a new plugin and fixing tests
         if (!project.hasProperty("nexus")) {
             mavenJava(MavenPublication) {
-                groupId 'org.octopusden.gradle.plugin'
+                groupId 'org.octopusden.octopus-gradle-plugin'
                 artifactId 'gradle-staging-plugin'
                 from components.java
             }
