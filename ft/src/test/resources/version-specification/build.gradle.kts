@@ -1,5 +1,5 @@
 plugins {
-    id("org.octopusden.release-management")
+    id("org.octopusden.octopus-release-management")
 }
 
 group = "org.octopusden.f1-base-services.service-registry"
