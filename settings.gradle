@@ -11,4 +11,4 @@ pluginManagement {
         }
     }
 }
-rootProject.name="org.octopusden.release-management"
+rootProject.name="org.octopusden.octopus-release-management"
