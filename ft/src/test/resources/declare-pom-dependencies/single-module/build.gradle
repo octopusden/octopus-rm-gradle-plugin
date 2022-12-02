@@ -1,7 +1,7 @@
 //
 plugins {
     id 'base'
-    id 'org.octopusden.release-management'
+    id 'org.octopusden.octopus-release-management'
 }
 
 group = 'org.octopusden.release-management.ft'
