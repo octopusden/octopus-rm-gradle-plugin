@@ -20,7 +20,7 @@ buildscript {
     }
     dependencies {
         if (project.hasProperty("gradleStagingPluginVersion")) {
-            classpath group: 'org.octopusden.gradle.plugin', name: 'gradle-staging-plugin', version: gradleStagingPluginVersion
+            classpath group: 'org.octopusden.octopus-gradle-plugin', name: 'gradle-staging-plugin', version: gradleStagingPluginVersion
         }
     }
 }
