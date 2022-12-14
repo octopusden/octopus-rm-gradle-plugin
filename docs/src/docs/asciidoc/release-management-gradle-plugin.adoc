@@ -1,4 +1,4 @@
-= Gradle
+= Octopus release management gradle plugin
 Gradle
 v: New hope
 :toc:
