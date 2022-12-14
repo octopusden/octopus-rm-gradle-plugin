@@ -6,10 +6,10 @@ plugins {
 }
 
 version = project.findProperty('buildVersion') ?: '1.0-SNAPSHOT'
-def implLoggingCore = project.findProperty('implLoggingCore') ?: ''
-def dockerRegestry = project.findProperty('dockerRegestry') ?: 'registry.hub.docker.com'
-def golangCommons = project.findProperty('golangCommons') ?: 'com.example.golang.commons:commons:1.0.0:@zip'
-def repositoryUrl = project.findProperty('repositoryUrl') ?: 'https://example.com'
+def implLoggingCore = project.findProperty('implLoggingCore').toString() ?: ''
+def dockerRegestry = project.findProperty('dockerRegestry').toString() ?: 'registry.hub.docker.com'
+def golangCommons = project.findProperty('golangCommons').toString() ?: 'com.example.golang.commons:commons:1.0.0:@zip'
+def repositoryUrl = project.findProperty('repositoryUrl').toString() ?: 'https://example.com'
 
 repositories {
     jcenter()
@@ -29,6 +29,18 @@ asciidoctor {
     }
 }
 
+def deQuoted(String value) {
+    if (
+            (value.startsWith('"') && value.endsWith('"'))
+                    || (value.startsWith('\'') && value.endsWith('\''))
+    ) {
+        return value.substring(1, value.length() - 1)
+    }
+    return value
+}
+
+println(deQuoted(implLoggingCore))
+
 tasks.register('publishToWiki', DockerTask) {
     image = "${project."docker.registry"}/confluencepublisher/confluence-publisher:0.14.0"
     dockerOptions = ['--network', 'host']
@@ -44,7 +56,7 @@ tasks.register('publishToWiki', DockerTask) {
            "ORPHAN_REMOVAL_STRATEGY": "KEEP_ORPHANS",
            "NOTIFY_WATCHERS"        : "false",
            "ATTRIBUTES"             : "{\"version-label\": \"$version\", " +
-                                      "\"impl-logging-core\":\"$implLoggingCore\"," +
+                                      "\"impl-logging-core\":\"${deQuoted(implLoggingCore).replaceAll('"','\\\\"')}\"," +
                                       "\"docker-regestry\":\"$dockerRegestry\"," +
                                       "\"golang-commons\":\"$golangCommons\"," +
                                       "\"repository-url\":\"$repositoryUrl\"}",
