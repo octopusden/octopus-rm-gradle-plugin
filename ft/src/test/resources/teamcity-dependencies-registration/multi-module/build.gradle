@@ -1,6 +1,6 @@
 //
 plugins {
-    id 'org.octopusden.release-management'
+    id 'org.octopusden.octopus-release-management'
 }
 
 allprojects {
