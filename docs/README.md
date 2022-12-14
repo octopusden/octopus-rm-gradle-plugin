@@ -1,8 +1,8 @@
-## HOW USE
+## HOW TO USE
 
-To generate documentation locally run:
+To generate documentation locally, run:
 ````
 ./gradlew asciidoctor 
-    -PimplLoggingCore="implementation \"com.examlpe.platform:platform-commons-logging-core:\${projec['platform-commons.version']}\"
+    -PimplLoggingCore="implementation \"com.example.platform:platform-commons-logging-core:\${project['platform-commons.version']}\"
 ````
-and check generated html files in build/docs/asciidoc directory
+and check generated html files in the build/docs/asciidoc directory
