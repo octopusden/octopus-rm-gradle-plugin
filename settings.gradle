@@ -12,3 +12,4 @@ pluginManagement {
     }
 }
 rootProject.name="org.octopusden.octopus-release-management"
+include("docs")

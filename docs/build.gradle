@@ -1,0 +1,54 @@
+import com.platformlib.plugins.gradle.wrapper.task.DockerTask
+
+plugins {
+    id 'org.asciidoctor.jvm.convert' version '3.3.2'
+    id 'com.platformlib.gradle-wrapper' version '0.2.6'
+}
+
+version = project.findProperty('buildVersion') ?: '1.0-SNAPSHOT'
+def implLoggingCore = project.findProperty('implLoggingCore') ?: ''
+def dockerRegestry = project.findProperty('dockerRegestry') ?: 'registry.hub.docker.com'
+def golangCommons = project.findProperty('golangCommons') ?: 'com.example.golang.commons:commons:1.0.0:@zip'
+def repositoryUrl = project.findProperty('repositoryUrl') ?: 'https://example.com'
+
+repositories {
+    jcenter()
+}
+
+asciidoctorj {
+    attributes 'version-label': version,
+               'impl-logging-core': implLoggingCore,
+               'docker-regestry': dockerRegestry,
+               'golang-commons': golangCommons,
+               'repository-url': repositoryUrl
+}
+
+asciidoctor {
+    sources {
+        include '**/*.adoc'
+    }
+}
+
+tasks.register('publishToWiki', DockerTask) {
+    image = "${project."docker.registry"}/confluencepublisher/confluence-publisher:0.14.0"
+    dockerOptions = ['--network', 'host']
+    bindMounts = ["${file('src/docs/asciidoc')}:/var/asciidoc-root-folder"]
+    env = ["ROOT_CONFLUENCE_URL"    : project.findProperty("WIKI_URL"),
+           "SKIP_SSL_VERIFICATION"  : "true",
+           "MAX_REQUESTS_PER_SECOND": "10",
+           "USERNAME"               : WIKI_USERNAME,
+           "PASSWORD"               : WIKI_PASSWORD,
+           "SPACE_KEY"              : "RD",
+           "ANCESTOR_ID"            : project.findProperty("RELEASE_MANAGEMENT_GRADLE_PLUGIN_PAGE_ID") ?: "XXXXXXX",
+           "PUBLISHING_STRATEGY"    : "REPLACE_ANCESTOR",
+           "ORPHAN_REMOVAL_STRATEGY": "KEEP_ORPHANS",
+           "NOTIFY_WATCHERS"        : "false",
+           "ATTRIBUTES"             : "{\"version-label\": \"$version\", " +
+                                      "\"impl-logging-core\":\"$implLoggingCore\"," +
+                                      "\"docker-regestry\":\"$dockerRegestry\"," +
+                                      "\"golang-commons\":\"$golangCommons\"," +
+                                      "\"repository-url\":\"$repositoryUrl\"}",
+           "PUBLISHING_STRATEGY"    : "REPLACE_ANCESTOR",
+           "CONVERT_ONLY"           : "false"
+    ]
+}
