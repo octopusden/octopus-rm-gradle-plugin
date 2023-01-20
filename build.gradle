@@ -147,7 +147,7 @@ publishing {
     }
 }
 
-if (!project.version.toString().toUpperCase().endsWith("SNAPSHOT")) {
+if (project.hasProperty("nexus") && !project.version.toString().toUpperCase().endsWith("SNAPSHOT")) {
     signing {
         sign publishing.publications
         def signingKey = findProperty("signingKey")
