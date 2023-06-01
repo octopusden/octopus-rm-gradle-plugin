@@ -6,5 +6,5 @@ jobs:
   run-build-and-deploy:
     uses: octopusden/octopus-base/.github/workflows/common-java-gradle-build.yml@skip-tests-fix
     with:
-      flow-type: public
+      flow-type: hybrid
       java-version: '11'
