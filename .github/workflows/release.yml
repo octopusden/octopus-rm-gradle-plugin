@@ -6,5 +6,6 @@ jobs:
   build:
     uses: octopusden/octopus-base/.github/workflows/common-java-gradle-release.yml@v2.0
     with:
+      flow-type: hybrid
       java-version: '11'
     secrets: inherit
