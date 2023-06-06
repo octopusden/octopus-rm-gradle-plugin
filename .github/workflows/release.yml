@@ -6,7 +6,7 @@ on:
 
 jobs:
   build:
-    uses: octopusden/octopus-base/.github/workflows/common-java-gradle-release.yml@v2.1
+    uses: octopusden/octopus-base/.github/workflows/common-java-gradle-release.yml@vfix-nexus-publishing
     with:
       flow-type: hybrid
       java-version: '11'
