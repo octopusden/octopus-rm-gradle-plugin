@@ -3,4 +3,4 @@ pluginManagement {
         id 'org.jetbrains.kotlin.jvm' version settings['kotlin.version']
     }
 }
-rootProject.name='org.octopusden.release-management.ft-docker'
+rootProject.name='org.octopusden.octopus-release-management.ft-docker'

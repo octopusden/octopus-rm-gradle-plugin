@@ -4,7 +4,7 @@ plugins {
     id 'org.octopusden.octopus-release-management'
 }
 
-group = 'org.octopusden.release-management.ft'
+group = 'org.octopusden.octopus-release-management.ft'
 
 apply plugin: 'maven-publish'
 
