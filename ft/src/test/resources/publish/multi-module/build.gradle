@@ -3,7 +3,7 @@ plugins {
 }
 
 allprojects {
-    group = 'org.octopusden.release-management.ft'
+    group = 'org.octopusden.octopus-release-management.ft'
 }
 
 configure(subprojects) {

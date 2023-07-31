@@ -1,6 +1,6 @@
 apply plugin: 'maven-publish'
 
-group = 'org.octopusden.release-management.ft'
+group = 'org.octopusden.octopus-release-management.ft'
 version = project.hasProperty("buildVersion") ? buildVersion : "1.0.DEV"
 
 buildscript {
