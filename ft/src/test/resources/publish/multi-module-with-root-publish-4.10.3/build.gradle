@@ -7,7 +7,7 @@ buildscript {
 apply plugin: 'org.octopusden.octopus-release-management'
 
 allprojects {
-    group = 'org.octopusden.release-management.ft'
+    group = 'org.octopusden.octopus-release-management.ft'
 }
 
 apply plugin: 'java'

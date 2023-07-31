@@ -4,7 +4,7 @@ plugins {
 
 //
 version = '1.0-SNAPSHOT'
-group = 'org.octopusden.release-management.ft'
+group = 'org.octopusden.octopus-release-management.ft'
 
 description "Release management gradle plugin ${version} functional tests"
 

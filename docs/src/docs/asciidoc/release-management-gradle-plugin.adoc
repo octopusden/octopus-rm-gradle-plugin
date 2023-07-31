@@ -8,10 +8,10 @@ v: New hope
 
 == Introduction
 
- org.octopusden.release-management gradle plugin is intended for supporting and Continuous integration.
+ org.octopusden.octopus-release-management gradle plugin is intended for supporting and Continuous integration.
 
 
-The actual org.octopusden.release-management gradle plugin version is v{version-label}
+The actual org.octopusden.octopus-release-management gradle plugin version is v{version-label}
 
 == Terminology
 
@@ -191,12 +191,12 @@ image::images/teamcity-configure-gradle-wrapper.png[TeamCity build configuration
 
 ==== The plugins DSL
 
-To support and Continues integration the project has to be configured to use org.octopusden.release-management plugin.
+To support and Continues integration the project has to be configured to use org.octopusden.octopus-release-management plugin.
 
 [source,groovy]
 ----
 plugins {
-    id 'org.octopusden.release-management'
+    id 'org.octopusden.octopus-release-management'
 }
 ----
 
@@ -204,7 +204,7 @@ No need more. The staging plugin will by applied by plugin and project will be c
 
 ==== Legacy Plugin Application
 
-Applying the org.octopusden.release-management plugin with the buildscript block:
+Applying the org.octopusden.octopus-release-management plugin with the buildscript block:
 
 :markup-in-source: verbatim,quotes
 
@@ -212,16 +212,16 @@ Applying the org.octopusden.release-management plugin with the buildscript block
 ----
 buildscript {
     dependencies {
-         classpath "org.octopusden.release-management:org.octopusden.release-management:${project.findProperty('release-management.version') ?: '{version-label}'}"
+         classpath "org.octopusden.octopus-release-management:org.octopusden.octopus-release-management:${project.findProperty('release-management.version') ?: '{version-label}'}"
      }
 }
 
-apply plugin: 'org.octopusden.release-management'
+apply plugin: 'org.octopusden.octopus-release-management'
 ----
 
 === The OW Release Management gradle plugin version
 
-The recommended way to configure _org.octopusden.release-management_ plugin version is to use plugins DSL and project properties placed in gradle.properties
+The recommended way to configure _org.octopusden.octopus-release-management_ plugin version is to use plugins DSL and project properties placed in gradle.properties
 
 This method will require timeFor that need to configure plugin management in project _settings_ file:
 
@@ -230,7 +230,7 @@ This method will require timeFor that need to configure plugin management in pro
 ----
 pluginManagement {
     plugins {
-        id 'org.octopusden.release-management' version settings['release-management.version']
+        id 'org.octopusden.octopus-release-management' version settings['release-management.version']
     }
 }
 ----
@@ -240,7 +240,7 @@ pluginManagement {
 ----
 pluginManagement {
     plugins {
-        id("org.octopusden.release-management") version(extra["release-management.version"] as String)
+        id("org.octopusden.octopus-release-management") version(extra["release-management.version"] as String)
     }
 }
 ----
@@ -270,7 +270,7 @@ The user build customization (specify additional parameters, options and etc) ha
 
 === Publishing artifacts
 
-To publish artifacts need to apply _org.octopusden.release-management_ and maven-publish plugins and configure publishing extension.
+To publish artifacts need to apply _org.octopusden.octopus-release-management_ and maven-publish plugins and configure publishing extension.
 
 No repository configuration is needed anymore.
 
@@ -278,7 +278,7 @@ No repository configuration is needed anymore.
 [source,groovy]
 ----
 plugins {
-    id 'org.octopusden.release-management'
+    id 'org.octopusden.octopus-release-management'
     id 'java-library'
 }
 
@@ -314,12 +314,12 @@ publishing {
 
 https://docs.gradle.org/current/dsl/org.gradle.api.publish.maven.MavenPom.html[Official Gradle guide] to customize publishing pom.xml
 
-To specify dependencies from declared configurations apply _'org.octopusden.release-management'_ plugin and use *declareDependencies* method:
+To specify dependencies from declared configurations apply _'org.octopusden.octopus-release-management'_ plugin and use *declareDependencies* method:
 
 [source,groovy]
 ----
 plugins {
-    id 'org.octopusden.release-management'
+    id 'org.octopusden.octopus-release-management'
 }
 configurations {
     fc_spartak
@@ -345,7 +345,7 @@ To declare from several configurations
 [source,groovy]
 ----
 plugins {
-    id 'org.octopusden.release-management'
+    id 'org.octopusden.octopus-release-management'
 }
 configurations {
     fc_spartak
@@ -414,7 +414,7 @@ Configure artifacts to publish:
 [source,groovy]
 ----
 plugins {
-    id 'org.octopusden.release-management'
+    id 'org.octopusden.octopus-release-management'
     id 'maven-publish'
 }
 
@@ -504,7 +504,7 @@ platform-commons.version=1.2.687
 ----
 pluginManagement {
     plugins {
-        id 'org.octopusden.release-management' version settings['release-management.version']
+        id 'org.octopusden.octopus-release-management' version settings['release-management.version']
         id 'org.jetbrains.kotlin.jvm'            version settings['kotlin.version']
         id 'org.springframework.boot'            version settings['spring-boot.version']
     }
@@ -515,7 +515,7 @@ pluginManagement {
 [source,groovy,subs="attributes+"]
 ----
 plugins {
-    id 'org.octopusden.release-management'
+    id 'org.octopusden.octopus-release-management'
     id 'java-library'
     id 'org.springframework.boot'
     id 'org.jetbrains.kotlin.jvm'
@@ -560,7 +560,7 @@ publishing {
 
 == Register dependencies for RM 2.0
 
-The _'org.octopusden.release-management'_ Gradle plugin includes all required functionality
+The _'org.octopusden.octopus-release-management'_ Gradle plugin includes all required functionality
 
 No additional plugin applying is needed.
 
@@ -570,7 +570,7 @@ To register dependencies in RM 2.0 which should be included in component's relea
 [source,groovy]
 ----
 plugins {
-    id 'org.octopusden.release-management'
+    id 'org.octopusden.octopus-release-management'
 }
 
 releaseManagement {
@@ -599,7 +599,7 @@ Use _com.platformlib.plugins.gradle.wrapper.task.DockerTask_ task to execute com
 [source,groovy]
 ----
 plugins {
-    id 'org.octopusden.release-management'
+    id 'org.octopusden.octopus-release-management'
 }
 
 task buildGoApplication(type: com.platformlib.plugins.gradle.wrapper.task.DockerTask) {
@@ -618,7 +618,7 @@ If there are several tasks use the same configuration then it could be configure
 [source,groovy,subs="attributes"]
 ----
 plugins {
-  id 'org.octopusden.release-management'
+  id 'org.octopusden.octopus-release-management'
 }
 
 ext {
@@ -654,7 +654,7 @@ The task outputs' could be used as source for artifact publishing
 plugins {
   id 'base'
   id 'maven-publish'
-  id 'org.octopusden.release-management'
+  id 'org.octopusden.octopus-release-management'
 }
 
 ext {
@@ -724,7 +724,7 @@ For more details please visit to wiki page of Automation Tool.
 
 The project can be configured for auto updating used components' dependencies versions.
 
-Auto update configured is done via autoUpdateDependencies extension which is applied by _org.octopusden.release-management_ gradle plugin:
+Auto update configured is done via autoUpdateDependencies extension which is applied by _org.octopusden.octopus-release-management_ gradle plugin:
 
 .use component(<Map>) method:
 [source,groovy]

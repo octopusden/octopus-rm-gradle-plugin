@@ -1,4 +1,4 @@
-# Gradle org.octopusden.release-management plugin
+# Gradle org.octopusden.octopus-release-management plugin
 
 Plugin for integration continuous integration and release management in gradle projects.
 
