@@ -52,7 +52,7 @@ class ReleaseManagementPluginTest {
     fun testPublishArtifacts(project: String, artifacts: Collection<String>) {
         val releaseManagementVersion: String = System.getenv()["__RELEASE_MANAGEMENT_VERSION__"] ?: throw IllegalStateException("The __RELEASE_MANAGEMENT_VERSION__ environment variable is not set")
         val buildVersion: String = System.getenv()["__BUILD_VERSION__"] ?: throw IllegalStateException("The __BUILD_VERSION__ environment variable is not set")
-        val componentName = "org.octopusden.release-management.ft.$project"
+        val componentName = "org.octopusden.octopus-release-management.ft.$project"
 
         val projectPath = Paths.get(ReleaseManagementPluginTest::class.java.getResource("/publish/$project")!!.toURI())
         logger.debug("Project directory {}", projectPath)
@@ -86,7 +86,7 @@ class ReleaseManagementPluginTest {
             val buildInfo = getBuildInfo(componentName, buildVersion)
             assertNotNull(buildInfo, "Build $componentName:$buildVersion is not registered in artifactory")
             artifacts.forEach { artifact ->
-                val module = buildInfo!!.modules.find { it.id == "org.octopusden.release-management.ft:$artifact:$buildVersion" }
+                val module = buildInfo!!.modules.find { it.id == "org.octopusden.octopus-release-management.ft:$artifact:$buildVersion" }
                 assertNotNull(module, "Module $artifact:$buildVersion wasn't found in build")
                 val moduleArtifact = module!!.artifacts.find { it.name == "$artifact-${buildVersion}.jar" }
                 assertNotNull(moduleArtifact, "Module artifact $artifact-${buildVersion}.jar hasn't been found in $buildInfo")
@@ -186,7 +186,7 @@ class ReleaseManagementPluginTest {
         val buildVersion: String = System.getenv()["__BUILD_VERSION__"] ?: throw IllegalStateException("The __BUILD_VERSION__ environment variable is not set")
         val classifiers = arrayOf("lib", "bin")
         classifiers.forEach { classifier ->
-            val componentName = "org.octopusden.release-management.ft.publishConfigs_$classifier"
+            val componentName = "org.octopusden.octopus-release-management.ft.publishConfigs_$classifier"
             val projectPath = Paths.get(ReleaseManagementPluginTest::class.java.getResource("/publish/sqlprs")!!.toURI())
             logger.debug("Project directory {}", projectPath)
             val gradleCommandAndLineProperties = Properties()

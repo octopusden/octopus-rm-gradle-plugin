@@ -26,7 +26,7 @@ buildscript {
 }
 
 allprojects {
-    group = 'org.octopusden.release-management.ft'
+    group = 'org.octopusden.octopus-release-management.ft'
     version = rootProject.version
     rootProject.buildscript.repositories.each {
       repositories.add(it)
