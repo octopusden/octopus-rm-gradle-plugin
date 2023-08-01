@@ -24,9 +24,13 @@ class ReleaseManagementPluginDockerTest {
         val projectPath = Paths.get(ReleaseManagementPluginDockerTest::class.java.getResource("/mesh-agent2")!!.toURI())
         logger.debug("Project directory {}", projectPath)
         val processBuilder: LocalProcessBuilder = ProcessBuilders.newProcessBuilder(LocalProcessSpec.LOCAL_COMMAND)
-        var packageName: String = System.getProperty("packageName").toString()
+        val packageName: String = System.getProperty("packageName").toString()
+        val envVariables = mutableMapOf("JAVA_HOME" to System.getProperty("java.home"))
+        System.getenv()["DOCKER_HOST"]?.let { dockerHost ->
+            envVariables["DOCKER_HOST"] = dockerHost
+        }
         val processInstance = processBuilder
-                .envVariables(mapOf("JAVA_HOME" to System.getProperty("java.home")))
+                .envVariables(envVariables)
                 .logger { it.logger(logger) }
                 .processInstance { it.unlimited() }
                 .mapBatExtension()
