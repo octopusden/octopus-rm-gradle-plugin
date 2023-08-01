@@ -1,6 +1,6 @@
 buildscript {
     dependencies {
-         classpath "org.octopusden.octopus-release-management:org.octopusden.octopus-release-management:${project.findProperty('release-management.version') ?: '1.0-SNAPSHOT'}"
+         classpath "org.octopusden.octopus-release-management:org.octopusden.octopus-release-management:${project.findProperty('octopus-release-management.version') ?: '1.0-SNAPSHOT'}"
      }
 }
 

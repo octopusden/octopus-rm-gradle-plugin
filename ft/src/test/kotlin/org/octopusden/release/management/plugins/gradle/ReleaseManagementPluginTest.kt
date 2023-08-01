@@ -146,7 +146,7 @@ class ReleaseManagementPluginTest {
             .workDirectory(projectPath)
             .commandAndArguments("$projectPath/gradlew")
             .build()
-            .execute("clean", "assemble", "generatePomFileForMavenPublication", "-Prelease-management.version=$releaseManagementVersion", "-PpackageName=$packageName")
+            .execute("clean", "assemble", "generatePomFileForMavenPublication", "-Poctopus-release-management.version=$releaseManagementVersion", "-PpackageName=$packageName")
             .toCompletableFuture()
             .get()
         assertEquals(0, processInstance.exitCode, "Gradle execution failure")
@@ -169,7 +169,7 @@ class ReleaseManagementPluginTest {
                 .mapBatExtension()
                 .mapCmdExtension()
                 .workDirectory(projectPath)
-                .commandAndArguments("$projectPath/gradlew", "-Prelease-management.version=$releaseManagementVersion")
+                .commandAndArguments("$projectPath/gradlew", "-Poctopus-release-management.version=$releaseManagementVersion")
                 .processInstance { it.unlimited() }
                 .build()
                 .execute(*commandLineArguments.toTypedArray())
