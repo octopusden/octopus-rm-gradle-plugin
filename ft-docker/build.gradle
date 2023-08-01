@@ -25,6 +25,11 @@ dependencies {
 test {
     useJUnitPlatform()
     environment 'DOCKER_REGISTRY', System.getenv().get('DOCKER_REGISTRY') ?: project.'docker.registry'
+
+    def dockerHost = System.getenv().get('DOCKER_HOST')
+    if (dockerHost != null) {
+        environment 'DOCKER_HOST', dockerHost
+    }
     systemProperty 'packageName', project.properties['packageName']
     testLogging.showStandardStreams = true
 }
