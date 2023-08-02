@@ -8,7 +8,7 @@ plugins {
 version = project.findProperty('buildVersion') ?: '1.0-SNAPSHOT'
 def header = project.findProperty('header').toString() ?: 'Octopus release management gradle plugin'
 def implLoggingCore = project.findProperty('implLoggingCore').toString() ?: ''
-def dockerRegistry = project.findProperty('dockerRegistry').toString() ?: 'registry.hub.docker.com'
+def dockerRegistry = project.findProperty('docker.registry').toString() ?: 'registry.hub.docker.com'
 def golangCommons = project.findProperty('golangCommons').toString() ?: 'com.example.golang.commons:commons:1.0.0:@zip'
 def repositoryUrl = project.findProperty('repositoryUrl').toString() ?: 'https://example.com'
 
