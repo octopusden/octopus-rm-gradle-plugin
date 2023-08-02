@@ -1,6 +1,6 @@
 pluginManagement {
     plugins {
-        id 'org.octopusden.octopus-release-management' version settings['release-management.version']
+        id 'org.octopusden.octopus-release-management' version settings['octopus-release-management.version']
         id 'org.springframework.boot' version settings['spring-boot.version']
         id 'io.spring.dependency-management' version settings['spring-dependency-management.version']
     }

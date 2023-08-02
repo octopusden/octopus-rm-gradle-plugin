@@ -35,7 +35,7 @@ class ReleaseManagementPluginDockerTest {
                 .commandAndArguments("$projectPath/gradlew")
                 .build()
                 .execute(
-                    "-Prelease-management.version=$releaseManagementVersion",
+                    "-Poctopus-release-management.version=$releaseManagementVersion",
                     "-Pescrow.build-phase=ASSEMBLE",
                     "-Pdocker.registry=$dockerRegistry",
                     "-PpackageName=$packageName",
@@ -46,7 +46,7 @@ class ReleaseManagementPluginDockerTest {
                 .toCompletableFuture()
                 .get()
         assertEquals(0, processInstance.exitCode, "Gradle execution failure")
-        assertThat(processInstance.stdOut).contains("Pull docker image docker.artifactory." + java.lang.System.getProperty("packageName") + ".com/platform/go-build:1.1.7")
+        assertThat(processInstance.stdOut).contains("Pull docker image $dockerRegistry/platform/go-build:1.1.7")
     }
 
     @Test
@@ -66,7 +66,7 @@ class ReleaseManagementPluginDockerTest {
             .commandAndArguments("$projectPath/gradlew")
             .build()
             .execute(
-                "-Prelease-management.version=$releaseManagementVersion",
+                "-Poctopus-release-management.version=$releaseManagementVersion",
                 "-Pescrow.build-phase=ASSEMBLE",
                 "-Pdocker.registry=$dockerRegistry",
                 "bootBuildImage"
