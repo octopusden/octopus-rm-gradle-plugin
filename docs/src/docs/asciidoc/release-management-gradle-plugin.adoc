@@ -1,4 +1,4 @@
-= Octopus release management gradle plugin
+= {header}
 Gradle
 v: New hope
 :toc:
@@ -626,7 +626,7 @@ ext {
 }
 
 platformDockerWrapper {
-    image = '{docker-regestry}/platform/go-build:1.1.7'
+    image = '{docker-registry}/platform/go-build:1.1.7'
     workDir = '/buildDir'
     dockerOptions = ['--network', 'host']
     bindMounts = ["$rootDir:/project/src/${repository}.git", "$buildDir:/buildDir", "$buildDir/deps/:/deps", "$buildDir/go-cache:/.cache"]
@@ -662,7 +662,7 @@ ext {
 }
 
 platformDockerWrapper {
-    image = '{docker-regestry}/platform/go-build:1.1.7'
+    image = '{docker-registry}/platform/go-build:1.1.7'
     workDir = '/buildDir'
     dockerOptions = ['--network', 'host']
     bindMounts = ["$rootDir:/project/src/${repository}.git", "$buildDir:/buildDir", "$buildDir/deps/:/deps", "$buildDir/go-cache:/.cache"]

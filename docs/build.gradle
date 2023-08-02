@@ -6,8 +6,9 @@ plugins {
 }
 
 version = project.findProperty('buildVersion') ?: '1.0-SNAPSHOT'
+def header = project.findProperty('header').toString() ?: 'Octopus release management gradle plugin'
 def implLoggingCore = project.findProperty('implLoggingCore').toString() ?: ''
-def dockerRegestry = project.findProperty('dockerRegestry').toString() ?: 'registry.hub.docker.com'
+def dockerRegistry = project.findProperty('dockerRegistry').toString() ?: 'registry.hub.docker.com'
 def golangCommons = project.findProperty('golangCommons').toString() ?: 'com.example.golang.commons:commons:1.0.0:@zip'
 def repositoryUrl = project.findProperty('repositoryUrl').toString() ?: 'https://example.com'
 
@@ -16,9 +17,10 @@ repositories {
 }
 
 asciidoctorj {
-    attributes 'version-label': version,
+    attributes 'header': header,
+               'version-label': version,
                'impl-logging-core': implLoggingCore,
-               'docker-regestry': dockerRegestry,
+               'docker-registry': dockerRegistry,
                'golang-commons': golangCommons,
                'repository-url': repositoryUrl
 }
@@ -55,9 +57,10 @@ tasks.register('publishToWiki', DockerTask) {
            "PUBLISHING_STRATEGY"    : "REPLACE_ANCESTOR",
            "ORPHAN_REMOVAL_STRATEGY": "KEEP_ORPHANS",
            "NOTIFY_WATCHERS"        : "false",
-           "ATTRIBUTES"             : "{\"version-label\": \"$version\", " +
+           "ATTRIBUTES"             : "{\"header\": \"$header\", " +
+                                      "\"version-label\": \"$version\", " +
                                       "\"impl-logging-core\":\"${deQuoted(implLoggingCore).replaceAll('"','\\\\"')}\"," +
-                                      "\"docker-regestry\":\"$dockerRegestry\"," +
+                                      "\"docker-registry\":\"$dockerRegistry\"," +
                                       "\"golang-commons\":\"$golangCommons\"," +
                                       "\"repository-url\":\"$repositoryUrl\"}",
            "PUBLISHING_STRATEGY"    : "REPLACE_ANCESTOR",
