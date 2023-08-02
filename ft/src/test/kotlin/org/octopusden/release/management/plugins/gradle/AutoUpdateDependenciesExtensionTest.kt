@@ -26,7 +26,7 @@ class AutoUpdateDependenciesExtensionTest {
             Arguments.of("auto-mapping",
                 mapOf(
                     "a-doc.version" to "3.53.3-137",
-                    "release-management.version" to "1.0-SNAPSHOT"
+                    "octopus-release-management.version" to "1.0-SNAPSHOT"
                 ),
                 emptyList<ComponentDependency>()
             ),

@@ -45,7 +45,7 @@ fun gradleProcessInstance(init: TestGradleDSL.() -> Unit): Pair<ProcessInstance,
         .processInstance { processInstanceConfiguration -> processInstanceConfiguration.unlimited() }
         .commandAndArguments("$projectPath/gradlew", "--no-daemon")
         .build()
-        .execute(*(listOf("-Prelease-management.version=$releaseManagementVersion") + testGradleDSL.tasks + testGradleDSL.additionalArguments).toTypedArray())
+        .execute(*(listOf("-Poctopus-release-management.version=$releaseManagementVersion") + testGradleDSL.tasks + testGradleDSL.additionalArguments).toTypedArray())
         .toCompletableFuture()
         .join(), projectPath)
 }
