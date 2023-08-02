@@ -1,3 +1,4 @@
+:header: Octopus Release Management Gradle plugin
 = {header}
 Gradle
 v: New hope
@@ -187,7 +188,7 @@ The gradle build step on TeamCity build configuration has to be configured to us
 
 image::images/teamcity-configure-gradle-wrapper.png[TeamCity build configuration gradle wrapper settings]
 
-=== Use OW Release Management gradle plugin
+=== Use Octopus Release Management gradle plugin
 
 ==== The plugins DSL
 
