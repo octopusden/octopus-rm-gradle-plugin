@@ -31,16 +31,16 @@ class AutoUpdateDependenciesExtensionTest {
                 emptyList<ComponentDependency>()
             ),
             Arguments.of("custom-mapping",
-                mapOf("pl-commons-version" to "1.1", "as-server.version" to "1.7.3182"),
+                mapOf("pl-utils-version" to "1.1", "my-app.version" to "1.7.3182"),
                 listOf(
-                    ComponentDependency( "appserver", "as-server.version", null,
+                    ComponentDependency( "myapp", "my-app.version", null,
                         pullRequest = false,
                         createJiraIssue = false,
                         includeBuild = false,
                         includeRc = false,
                         includeRelease = true
                     ),
-                    ComponentDependency( "platform-commons", "pl-commons-version", null,
+                    ComponentDependency( "platform-utils", "pl-utils-version", null,
                         pullRequest = false,
                         createJiraIssue = false,
                         includeBuild = false,
@@ -50,9 +50,9 @@ class AutoUpdateDependenciesExtensionTest {
                 )
             ),
             Arguments.of("kotlin-dsl",
-                mapOf("platform-commons.version" to "1.2.687"),
+                mapOf("platform-utils.version" to "1.2.687"),
                 listOf(
-                    ComponentDependency( "platform-commons", "platform-commons.version", null,
+                    ComponentDependency( "platform-utils", "platform-utils.version", null,
                         pullRequest = false,
                         createJiraIssue = false,
                         includeBuild = false,
@@ -62,16 +62,16 @@ class AutoUpdateDependenciesExtensionTest {
                 )
             ),
             Arguments.of("default-values",
-                mapOf("pl-commons-version" to "1.1", "as-server.version" to "1.7.3182"),
+                mapOf("pl-utils-version" to "1.1", "my-app.version" to "1.7.3182"),
                 listOf(
-                    ComponentDependency( "platform-commons", "pl-commons-version", null,
+                    ComponentDependency( "platform-utils", "pl-utils-version", null,
                         pullRequest = false,
                         createJiraIssue = false,
                         includeBuild = false,
                         includeRc = false,
                         includeRelease = true
                     ),
-                    ComponentDependency( "appserver", "as-server.version", null,
+                    ComponentDependency( "myapp", "my-app.version", null,
                         pullRequest = true,
                         createJiraIssue = true,
                         includeBuild = false,
@@ -81,16 +81,16 @@ class AutoUpdateDependenciesExtensionTest {
                 )
             ),
             Arguments.of("version-range",
-                mapOf("pl-commons-version" to "1.1", "as-server.version" to "1.7.3182"),
+                mapOf("pl-utils-version" to "1.1", "my-app.version" to "1.7.3182"),
                 listOf(
-                    ComponentDependency( "platform-commons", "pl-commons-version", "(1,)",
+                    ComponentDependency( "platform-utils", "pl-utils-version", "(1,)",
                         pullRequest = false,
                         createJiraIssue = false,
                         includeBuild = false,
                         includeRc = false,
                         includeRelease = true
                     ),
-                    ComponentDependency( "appserver", "as-server.version", "[1,)",
+                    ComponentDependency( "myapp", "my-app.version", "[1,)",
                         pullRequest = false,
                         createJiraIssue = false,
                         includeBuild = false,
@@ -134,11 +134,11 @@ class AutoUpdateDependenciesExtensionTest {
 -----BEGIN AUDC-----
 {
    "declared" : {
-    "as-server.version" : "1.7.3182"
+    "my-app.version" : "1.7.3182"
    },
    "configured" : [ {
-     "name" : "appserver",
-     "project-property" : "as-server.version",
+     "name" : "myapp",
+     "project-property" : "my-app.version",
      "pull-request" : false,
      "create-jira-issue" : false
    } ]

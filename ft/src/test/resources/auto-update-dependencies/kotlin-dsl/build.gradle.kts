@@ -8,7 +8,7 @@ group = "org.octopusden.uds"
 
 autoUpdateDependencies {
     pullRequest = false
-    component(mapOf("name" to "platform-commons", "projectProperty" to "platform-commons.version"))
+    component(mapOf("name" to "platform-utils", "projectProperty" to "platform-utils.version"))
 }
 
 tasks {

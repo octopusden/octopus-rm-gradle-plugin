@@ -497,7 +497,7 @@ If TeamCity project build configuration is not based on standard templates and i
 octopus-release-management.version={version-label}
 kotlin.version=1.3.70
 spring-boot.version=2.2.5.RELEASE
-platform-commons.version=1.2.687
+platform-utils.version=1.2.687
 ----
 
 .settings.gradle
@@ -576,8 +576,8 @@ plugins {
 
 releaseManagement {
     releaseDependencies {
-        component name: "SolutionMounter", version: project.'solution.mounter.version'
-        component name: "SolutionMounterDSL", version: project.'solution.mounter.dsl.version'
+        component name: "deployer", version: project.'deployer.version'
+        component name: "deployerDSL", version: project.'deployer.dsl.version'
     }
 }
 ----
@@ -623,7 +623,7 @@ plugins {
 }
 
 ext {
-  repository = "git.domain.corp/system/mesh-agent2"
+  repository = "git.domain.corp/system/test-agent"
 }
 
 platformDockerWrapper {
@@ -632,18 +632,18 @@ platformDockerWrapper {
     dockerOptions = ['--network', 'host']
     bindMounts = ["$rootDir:/project/src/${repository}.git", "$buildDir:/buildDir", "$buildDir/deps/:/deps", "$buildDir/go-cache:/.cache"]
     env = ["GOPATH": "/go:/deps:/project"]
-    commandAndArguments = ['go', 'build', "-ldflags=-s -w -X git.domain.corp/system/go-commons.git/srv.Version=${project.version}"]
+    commandAndArguments = ['go', 'build', "-ldflags=-s -w -X git.domain.corp/system/golib.git/srv.Version=${project.version}"]
 }
 
 task buildLinuxGoApplication(type: com.platformlib.plugins.gradle.wrapper.task.DockerTask, dependsOn: unpackDependencies) {
-    outputs.file("$buildDir/mesh-agent2")
-    commandAndArguments += ['-o', 'mesh-agent2', "${repository}.git/cmd/mesh-agent2"]
+    outputs.file("$buildDir/test-agent")
+    commandAndArguments += ['-o', 'test-agent', "${repository}.git/cmd/test-agent"]
 }
 
 task buildWinGoApplication(type: com.platformlib.plugins.gradle.wrapper.task.DockerTask, dependsOn: unpackDependencies) {
-    outputs.file("$buildDir/mesh-agent2.exe")
+    outputs.file("$buildDir/test-agent.exe")
     env += ['GOARCH': 'amd64', 'GOOS': 'windows', 'CXX': 'x86_64-w64-mingw32-g++', 'CC': 'x86_64-w64-mingw32-gcc', 'CGO_ENABLED': '1']
-    commandAndArguments += ['-o', 'mesh-agent2.exe', "${repository}.git/cmd/mesh-agent2"]
+    commandAndArguments += ['-o', 'test-agent.exe', "${repository}.git/cmd/test-agent"]
 }
 ----
 
@@ -659,7 +659,7 @@ plugins {
 }
 
 ext {
-  repository = "git.domain.corp/system/mesh-agent2"
+  repository = "git.domain.corp/system/test-agent"
 }
 
 platformDockerWrapper {
@@ -668,10 +668,10 @@ platformDockerWrapper {
     dockerOptions = ['--network', 'host']
     bindMounts = ["$rootDir:/project/src/${repository}.git", "$buildDir:/buildDir", "$buildDir/deps/:/deps", "$buildDir/go-cache:/.cache"]
     env = ["GOPATH": "/go:/deps:/project"]
-    commandAndArguments = ['go', 'build', "-ldflags=-s -w -X git.domain.corp/system/go-commons.git/srv.Version=${project.version}"]
+    commandAndArguments = ['go', 'build', "-ldflags=-s -w -X git.domain.corp/system/golib.git/srv.Version=${project.version}"]
 }
 
-group = "org.octopusden.mesh2"
+group = "org.octopusden.test"
 
 configurations {
   go_compile
@@ -688,12 +688,12 @@ task unpackDependencies(type: Copy) {
 }
 
 task buildLinuxGoApplication(type: com.platformlib.plugins.gradle.wrapper.task.DockerTask, dependsOn: unpackDependencies) {
-    outputs.file("$buildDir/mesh-agent2")
-    commandAndArguments += ['-o', 'mesh-agent2', "${repository}.git/cmd/mesh-agent2"]
+    outputs.file("$buildDir/test-agent")
+    commandAndArguments += ['-o', 'test-agent', "${repository}.git/cmd/test-agent"]
 }
 
 task linuxZip(type: Zip, dependsOn: buildLinuxGoApplication) {
-  archiveName = "mesh-agent2-linux.zip"
+  archiveName = "test-agent-linux.zip"
   destinationDir = file(buildDir)
   from(buildLinuxGoApplication) {
     fileMode 0755
@@ -752,10 +752,10 @@ Available attributes:
 |Attribute |Description
 
 |name
-|Component name, e.g. appserver
+|Component name, e.g. myapp
 
 |projectProperty
-|Project property stored in gradle.properties where is stored dependency version, e.g. platform-commons.version
+|Project property stored in gradle.properties where is stored dependency version, e.g. platform-utils.version
 
 |versionRange
 |Version range restriction for updating, e.g. (1.1,)

@@ -1,4 +1,4 @@
 //
 dependencies {
-    api group: "com.${project["packageName"]}.platform.solution.mounter", name: "solution-mounter-core", version: project['solution.mounter.core.version']
+    api group: "com.${project["packageName"]}.platform.deployer", name: "deployer-core", version: project['deployer.core.version']
 }

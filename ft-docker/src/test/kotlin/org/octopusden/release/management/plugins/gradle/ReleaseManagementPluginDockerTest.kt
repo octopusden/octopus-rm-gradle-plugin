@@ -21,7 +21,7 @@ class ReleaseManagementPluginDockerTest {
     @Test
     fun testPullDockerImage() {
         val releaseManagementVersion: String = System.getenv()["__RELEASE_MANAGEMENT_VERSION__"] ?: throw IllegalStateException("The __RELEASE_MANAGEMENT_VERSION__ environment variable is not set")
-        val projectPath = Paths.get(ReleaseManagementPluginDockerTest::class.java.getResource("/mesh-agent2")!!.toURI())
+        val projectPath = Paths.get(ReleaseManagementPluginDockerTest::class.java.getResource("/test-agent")!!.toURI())
         logger.debug("Project directory {}", projectPath)
         val processBuilder: LocalProcessBuilder = ProcessBuilders.newProcessBuilder(LocalProcessSpec.LOCAL_COMMAND)
         var packageName: String = System.getProperty("packageName").toString()

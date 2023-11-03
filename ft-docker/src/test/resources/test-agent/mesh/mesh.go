@@ -1,7 +1,7 @@
 package mesh
 
 import (
-	"git.domain.corp/system/go-commons.git/log"
+	"git.domain.corp/system/golib.git/log"
 )
 
 var logger = log.NewLogger("mesh")

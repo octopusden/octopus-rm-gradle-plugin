@@ -3,7 +3,7 @@
 
 version = hasProperty("SM_DSL_VERSION") ? SM_DSL_VERSION : hasProperty("buildVersion") ? buildVersion : "1.0-SNAPSHOT"
 
-description "Solution Mounter DSL $version"
+description "Deployer DSL $version"
 
 buildscript {
     /* Escrow build support */
