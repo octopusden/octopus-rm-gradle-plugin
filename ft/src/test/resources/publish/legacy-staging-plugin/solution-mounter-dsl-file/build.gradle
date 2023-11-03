@@ -1,4 +1,4 @@
 //
 dependencies {
-    compile group: "com.${project["packageName"]}.platform", name: "platform-commons-file", version: project['platform-commons.version']
+    compile group: "com.${project["packageName"]}.platform", name: "platform-utils-file", version: project['platform-utils.version']
 }

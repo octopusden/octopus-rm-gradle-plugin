@@ -1,9 +1,9 @@
 autoUpdateDependencies {
-    component(name: 'platform-commons', projectProperty: 'pl-commons-version')
+    component(name: 'platform-utils', projectProperty: 'pl-utils-version')
     pullRequest = true
     createJiraIssue = true
     component {
-        name 'appserver'
-        projectProperty 'as-server.version'
+        name 'myapp'
+        projectProperty 'my-app.version'
     }
 }

@@ -1,6 +1,6 @@
 autoUpdateDependencies {
     component {
-        name 'appserver'
-        projectProperty 'as-server.version'
+        name 'myapp'
+        projectProperty 'my-app.version'
     }
 }
