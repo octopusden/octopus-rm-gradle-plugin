@@ -5,7 +5,7 @@ plugins {
 }
 
 ext {
-  repository = "git.domain.corp/system/mesh-agent2"
+  repository = "git.domain.corp/system/test-agent"
 }
 
 platformDockerWrapper {
@@ -17,7 +17,7 @@ platformDockerWrapper {
     commandAndArguments = ['go', 'build', "-ldflags=-s -w -X git.domain.corp/system/go-commons.git/srv.Version=${project.version}"]
 }
 
-group = "org.octopusden.mesh2"
+group = "org.octopusden.test"
 
 configurations {
   go_compile
@@ -44,24 +44,24 @@ task unpackDependencies(type: Copy) {
 }
 
 task buildLinuxGoApplication(type: com.platformlib.plugins.gradle.wrapper.task.DockerTask, dependsOn: unpackDependencies) {
-    outputs.file("$buildDir/mesh-agent2")
-    commandAndArguments += ['-o', 'mesh-agent2', "${repository}.git/cmd/mesh-agent2"]
+    outputs.file("$buildDir/test-agent")
+    commandAndArguments += ['-o', 'test-agent', "${repository}.git/cmd/test-agent"]
 }
 
 task buildWinGoApplication(type: com.platformlib.plugins.gradle.wrapper.task.DockerTask, dependsOn: unpackDependencies) {
-    outputs.file("$buildDir/mesh-agent2.exe")
+    outputs.file("$buildDir/test-agent.exe")
     env += ['GOARCH': 'amd64', 'GOOS': 'windows', 'CXX': 'x86_64-w64-mingw32-g++', 'CC': 'x86_64-w64-mingw32-gcc', 'CGO_ENABLED': '1']
-    commandAndArguments += ['-o', 'mesh-agent2.exe', "${repository}.git/cmd/mesh-agent2"]
+    commandAndArguments += ['-o', 'test-agent.exe', "${repository}.git/cmd/test-agent"]
 }
 
 task windowsZip(type: Zip, dependsOn: buildWinGoApplication) {
-  archiveName = "mesh-agent2-windows.zip"
+  archiveName = "test-agent-windows.zip"
   destinationDir = file(buildDir)
   from buildWinGoApplication
 }
 
 task linuxZip(type: Zip, dependsOn: buildLinuxGoApplication) {
-  archiveName = "mesh-agent2-linux.zip"
+  archiveName = "test-agent-linux.zip"
   destinationDir = file(buildDir)
   from(buildLinuxGoApplication) {
     fileMode 0755

@@ -4,4 +4,4 @@ pluginManagement {
   }
 }
 
-rootProject.name="mesh-agent2"
+rootProject.name="test-agent"
