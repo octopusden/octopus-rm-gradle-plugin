@@ -7,7 +7,7 @@ group = 'org.octopusden.dbsm.cloud'
 
 releaseManagement {
     releaseDependencies {
-        component(name: 'w4w3_doc', version: project['doc.version'])
+        component(name: 'web_portal3_doc', version: project['doc.version'])
    }
 }
 

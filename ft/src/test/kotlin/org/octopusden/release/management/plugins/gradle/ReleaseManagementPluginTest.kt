@@ -31,13 +31,13 @@ class ReleaseManagementPluginTest {
                 Arguments.of("single-module-gradle-6.8.3", listOf("single-module-gradle-6.8.3")),
                 Arguments.of("multi-module-4.10.3", listOf("module-3", "module-4")),
                 Arguments.of("multi-module-with-root-publish-4.10.3", listOf("multi-module-with-root-publish-4.10.3", "module-5")),
-                Arguments.of("legacy-staging-plugin", listOf("solution-mounter-dsl-core", "solution-mounter-dsl-file"))
+                Arguments.of("legacy-staging-plugin", listOf("deployer-dsl-core", "deployer-dsl-file"))
         )
 
         @JvmStatic
         fun dependedComponentsRegistrationData(): Stream<Arguments> =  Stream.of(
                 Arguments.of("multi-module", listOf("DBSM-Cloud-Common:0.1.67", "DBSM-Cloud-API:0.1.71")),
-                Arguments.of("auto-registration", listOf("w4w3_doc:3.53.3-137"))
+                Arguments.of("auto-registration", listOf("web_portal3_doc:3.53.3-137"))
         )
 
         @JvmStatic

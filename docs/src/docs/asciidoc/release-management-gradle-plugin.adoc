@@ -576,8 +576,8 @@ plugins {
 
 releaseManagement {
     releaseDependencies {
-        component name: "SolutionMounter", version: project.'solution.mounter.version'
-        component name: "SolutionMounterDSL", version: project.'solution.mounter.dsl.version'
+        component name: "deployer", version: project.'deployer.version'
+        component name: "deployerDSL", version: project.'deployer.dsl.version'
     }
 }
 ----
