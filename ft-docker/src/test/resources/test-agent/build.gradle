@@ -14,7 +14,7 @@ platformDockerWrapper {
     dockerOptions = ['--network', 'host']
     bindMounts = ["$rootDir:/project/src/${repository}.git", "$buildDir:/buildDir", "$buildDir/deps/:/deps", "$buildDir/go-cache:/.cache"]
     env = ["GOPATH": "/go:/deps:/project"]
-    commandAndArguments = ['go', 'build', "-ldflags=-s -w -X git.domain.corp/system/go-commons.git/srv.Version=${project.version}"]
+    commandAndArguments = ['go', 'build', "-ldflags=-s -w -X git.domain.corp/system/golib.git/srv.Version=${project.version}"]
 }
 
 group = "org.octopusden.test"
