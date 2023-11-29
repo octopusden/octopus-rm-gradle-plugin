@@ -44,7 +44,7 @@ def deQuoted(String value) {
 println(deQuoted(implLoggingCore))
 
 tasks.register('publishToWiki', DockerTask) {
-    image = "${project."docker.registry"}/confluencepublisher/confluence-publisher:0.14.0"
+    image = "${project."docker.registry"}/confluencepublisher/confluence-publisher:0.22.0"
     dockerOptions = ['--network', 'host']
     bindMounts = ["${file('src/docs/asciidoc')}:/var/asciidoc-root-folder"]
     env = ["ROOT_CONFLUENCE_URL"    : project.findProperty("WIKI_URL"),
