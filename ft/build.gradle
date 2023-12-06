@@ -37,5 +37,6 @@ dependencies {
 test {
     useJUnitPlatform()
     systemProperty 'packageName', project.properties['packageName']
+    systemProperty 'supportedGroupIds', project.properties['supportedGroupIds']
     testLogging.showStandardStreams = true
 }

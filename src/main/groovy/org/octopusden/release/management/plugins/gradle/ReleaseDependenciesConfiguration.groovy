@@ -13,20 +13,8 @@ class ReleaseDependenciesConfiguration {
     private boolean fromDependencies = false
     private ReleaseDependenciesExtractingConfiguration extractingConfiguration = new ReleaseDependenciesExtractingConfiguration()
     private boolean touched
-    /**
-     * The filter to divide component by packages
-     */
-    private String[] supportedGroupIds
 
     private final Map<String, Object> properties = new ConcurrentHashMap<>()
-
-    def getSupportedGroupIds() {
-        return supportedGroupIds
-    }
-
-    def supportedGroupIds(String[] supportedGroupIds) {
-        this.supportedGroupIds = supportedGroupIds
-    }
 
     def fromDependencies() {
         fromDependencies = true
@@ -54,7 +42,7 @@ class ReleaseDependenciesConfiguration {
         touched = true
     }
 
-    def getComponents() { return components }
+    List<VersionedComponent> getComponents() { return components }
 
     boolean isFromDependencies() {
         return fromDependencies
