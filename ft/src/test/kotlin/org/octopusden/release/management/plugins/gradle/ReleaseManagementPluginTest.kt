@@ -111,7 +111,6 @@ class ReleaseManagementPluginTest {
         val gradleCommandAdnArguments = gradleCommandAndLineProperties.getProperty("command-and-arguments")
                 .replace("__RELEASE_MANAGEMENT_VERSION__", releaseManagementVersion)
                 .replace("__PACKAGE_NAME__", System.getProperty("packageName"))
-                .replace("__SUPPORTED_GROUP_IDS__", System.getProperty("supportedGroupIds"))
                 .split(Regex("\\s+"))
         val processBuilder: LocalProcessBuilder = ProcessBuilders.newProcessBuilder(LocalProcessSpec.LOCAL_COMMAND)
         val stdout = ArrayList<String>()

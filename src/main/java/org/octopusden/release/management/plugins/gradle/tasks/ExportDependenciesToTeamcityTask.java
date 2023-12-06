@@ -40,12 +40,6 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
             .map(v -> Boolean.parseBoolean(v.toString()))
             .orElse(false);
 
-    private Collection<String> supportedGroupIds = Optional.ofNullable(getProject().findProperty("supportedGroupIds"))
-            .map(v ->
-                    Arrays.stream(v.toString().split("\\s*,\\s*"))
-                            .collect(Collectors.toList())
-            ).orElseThrow(() -> new IllegalArgumentException("supportedGroupIds must be set"));
-
     private ComponentsRegistryServiceClient componentsRegistryServiceClient = new ClassicComponentsRegistryServiceClient(new ClassicComponentsRegistryServiceClientUrlProvider() {
         @NotNull
         @Override
@@ -92,7 +86,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
     }
 
     private void printProperties() {
-        getLogger().info("ExportDependenciesToTeamcityTask Parameters: excludedConfigurations={}, includeAllDependencies={}, supportedGroupIds={}, componentRegistryServiceUrl={}", excludedConfigurations, includeAllDependencies, supportedGroupIds, componentRegistryServiceUrl);
+        getLogger().info("ExportDependenciesToTeamcityTask Parameters: excludedConfigurations={}, includeAllDependencies={}, componentRegistryServiceUrl={}", excludedConfigurations, includeAllDependencies, componentRegistryServiceUrl);
     }
 
     @NotNull
@@ -120,7 +114,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
     private List<Predicate<ModuleComponentIdentifier>> getFilters(ReleaseDependenciesConfiguration releaseDependenciesConfiguration) {
         final Predicate<ModuleComponentIdentifier> excludePredicate = getExcludePredicate(releaseDependenciesConfiguration);
         final Predicate<ModuleComponentIdentifier> includePredicate = getIncludePredicate(releaseDependenciesConfiguration);
-        final Predicate<ModuleComponentIdentifier> supportedGroupIdsPredicate = getSupportedGroupIdsPredicate(supportedGroupIds);
+        final Predicate<ModuleComponentIdentifier> supportedGroupIdsPredicate = getSupportedGroupIdsPredicate();
 
         final List<Predicate<ModuleComponentIdentifier>> filters = new ArrayList<>();
         filters.add(supportedGroupIdsPredicate);
@@ -172,7 +166,8 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         ).collect(Collectors.toList());
     }
 
-    private Predicate<ModuleComponentIdentifier> getSupportedGroupIdsPredicate(Collection<String> supportedGroupIds) {
+    private Predicate<ModuleComponentIdentifier> getSupportedGroupIdsPredicate() {
+        final Set<String> supportedGroupIds = componentsRegistryServiceClient.getSupportedGroupIds();
         return componentArtifact -> {
             final boolean passed = supportedGroupIds.stream().anyMatch(g -> componentArtifact.getGroup().startsWith(g));
             getLogger().info("ExportDependenciesToTeamcityTask SupportedGroups dependencies filter: {} passed = {}", componentArtifact, passed);
