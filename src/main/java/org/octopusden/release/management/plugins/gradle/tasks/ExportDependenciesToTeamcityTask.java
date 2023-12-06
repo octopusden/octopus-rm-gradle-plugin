@@ -14,6 +14,7 @@ import org.octopusden.octopus.components.registry.core.dto.ArtifactDependency;
 import org.octopusden.release.management.plugins.gradle.ReleaseDependenciesConfiguration;
 import org.octopusden.release.management.plugins.gradle.ReleaseManagementDependenciesExtension;
 import org.octopusden.release.management.plugins.gradle.dto.ComponentArtifact;
+import org.octopusden.release.management.plugins.gradle.dto.Module;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,17 +23,18 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ExportDependenciesToTeamcityTask extends DefaultTask {
 
-    protected static final String COMPONENT_FORMAT = "%s:%s";
+    private static final String COMPONENT_FORMAT = "%s:%s";
+
     private final String componentRegistryServiceUrl = System.getenv("COMPONENT_REGISTRY_SERVICE_URL");
-    @Input
-    @org.gradle.api.tasks.Optional
-    public List<String> excludedConfigurations = Arrays.asList("sourceArtifacts", "-runtime", "runtimeElements", "runtimeOnly", "testRuntimeOnly", "testRuntime");
+
+    private List<String> excludedConfigurations = Arrays.asList("sourceArtifacts", "-runtime", "runtimeElements", "runtimeOnly", "testRuntimeOnly", "testRuntime");
 
     private boolean includeAllDependencies = Optional.ofNullable(getProject().findProperty("includeAllDependencies"))
             .map(v -> Boolean.parseBoolean(v.toString()))
@@ -43,6 +45,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
                     Arrays.stream(v.toString().split("\\s*,\\s*"))
                             .collect(Collectors.toList())
             ).orElseThrow(() -> new IllegalArgumentException("supportedGroupIds must be set"));
+
     private ComponentsRegistryServiceClient componentsRegistryServiceClient = new ClassicComponentsRegistryServiceClient(new ClassicComponentsRegistryServiceClientUrlProvider() {
         @NotNull
         @Override
@@ -52,6 +55,16 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
     });
 
     public ExportDependenciesToTeamcityTask() {
+    }
+
+    @Input
+    @org.gradle.api.tasks.Optional
+    public List<String> getExcludedConfigurations() {
+        return excludedConfigurations;
+    }
+
+    public void setExcludedConfigurations(List<String> excludedConfigurations) {
+        this.excludedConfigurations = excludedConfigurations;
     }
 
     @TaskAction
@@ -118,7 +131,6 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         return filters;
     }
 
-
     private Collection<ComponentArtifact> extractConfigurationDependencies(Configuration configuration, Collection<Predicate<ModuleComponentIdentifier>> filters) {
         getLogger().debug("ExportDependenciesToTeamcityTask Configuration '{}' dependencies", configuration.getName());
 
@@ -168,19 +180,22 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         };
     }
 
+    @NotNull
+    private static final Function<ModuleComponentIdentifier, Predicate<Module>> getModulePredicate =
+            componentArtifact -> (Predicate<Module>) module -> {
+                final String excludeGroup = module.getGroup();
+                final String excludeModule = module.getModule();
+                return excludeGroup != null && excludeGroup.equals(componentArtifact.getGroup()) && excludeModule != null && excludeModule.equals(componentArtifact.getGroup()) ||
+                        excludeGroup == null && excludeModule != null && excludeModule.equals(componentArtifact.getModule()) ||
+                        excludeGroup != null && excludeGroup.equals(componentArtifact.getGroup()) && excludeModule == null;
+            };
+
     private Predicate<ModuleComponentIdentifier> getExcludePredicate(ReleaseDependenciesConfiguration releaseDependenciesConfiguration) {
         return componentArtifact -> {
             final boolean passed = releaseDependenciesConfiguration.getExtractingConfiguration()
                     .getExcludeModules()
                     .stream()
-                    .noneMatch(module -> {
-                        final String excludeGroup = module.getGroup();
-                        final String excludeModule = module.getModule();
-
-                        return excludeGroup != null && excludeGroup.equals(componentArtifact.getGroup()) && excludeModule != null && excludeModule.equals(componentArtifact.getGroup()) ||
-                                excludeGroup == null && excludeModule != null && excludeModule.equals(componentArtifact.getModule()) ||
-                                excludeGroup != null && excludeGroup.equals(componentArtifact.getGroup()) && excludeModule == null;
-                    });
+                    .noneMatch(getModulePredicate.apply(componentArtifact));
             getLogger().info("ExportDependenciesToTeamcityTask Exclude dependencies filter: {} passed = {}", componentArtifact, passed);
             return passed;
         };
@@ -191,14 +206,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
             final boolean passed = releaseDependenciesConfiguration.getExtractingConfiguration()
                     .getIncludeModules()
                     .stream()
-                    .anyMatch(module -> {
-                        final String includeGroup = module.getGroup();
-                        final String includeModule = module.getModule();
-
-                        return includeGroup != null && includeGroup.equals(componentArtifact.getGroup()) && includeModule != null && includeModule.equals(componentArtifact.getGroup()) ||
-                                includeGroup == null && includeModule != null && includeModule.equals(componentArtifact.getModule()) ||
-                                includeGroup != null && includeGroup.equals(componentArtifact.getGroup()) && includeModule == null;
-                    });
+                    .anyMatch(getModulePredicate.apply(componentArtifact));
             getLogger().info("ExportDependenciesToTeamcityTask Include dependencies filter: {} passed = {}", componentArtifact, passed);
             return passed;
         };
