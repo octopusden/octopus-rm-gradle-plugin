@@ -15,17 +15,12 @@ How does it work:
 Document publishing is a part of component build chain, module docs
 
 ## Build
-The required parameters to build:\
-*supportedGroupIds* - A list of parameters to filter dependencies by group
-```shell
-./gradlew build -PsupportedGroupIds=org.octopusden
-```
 
 ## Test
 The required parameters to test:\
 *packageName* - The temporary parameter to be able to use package name which is set up externally
 ```shell
-./gradlew test -PpackageName=org.octopusden
+./gradlew test -PpackageName=octopusden
 ```
 
 ## Parameters
