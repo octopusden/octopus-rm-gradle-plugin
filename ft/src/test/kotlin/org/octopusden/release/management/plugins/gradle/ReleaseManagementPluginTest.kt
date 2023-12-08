@@ -36,8 +36,10 @@ class ReleaseManagementPluginTest {
 
         @JvmStatic
         fun dependedComponentsRegistrationData(): Stream<Arguments> =  Stream.of(
-                Arguments.of("multi-module", listOf("DBSM-Cloud-Common:0.1.67", "DBSM-Cloud-API:0.1.71")),
-                Arguments.of("auto-registration", listOf("web_portal3_doc:3.53.3-137"))
+            Arguments.of("multi-module", "teamcity-gradle-template-command.properties", listOf("DBSM-Cloud-Common:0.1.67", "DBSM-Cloud-API:0.1.71")),
+            Arguments.of("multi-module", "teamcity-gradle-template-command-include-all-deps.properties", listOf("DBSM-Cloud-Common:0.1.67", "DBSM-Cloud-API:0.1.71", "components-registry-service:0.0.869")),
+            Arguments.of("auto-registration", "teamcity-gradle-template-command.properties", listOf("web_portal3_doc:3.53.3-137")),
+            Arguments.of("auto-registration", "teamcity-gradle-template-command-include-all-deps.properties", listOf("web_portal3_doc:3.53.3-137", "DBSM-Cloud-API:0.1.71","DBSM-Cloud-Common:0.1.67"))
         )
 
         @JvmStatic
@@ -96,14 +98,14 @@ class ReleaseManagementPluginTest {
 
     @ParameterizedTest
     @MethodSource("dependedComponentsRegistrationData")
-    fun testDependedComponentsRegistration(project: String, expectedComponents: Collection<String>) {
+    fun testDependedComponentsRegistration(project: String, gradleCommandPropFile: String, expectedComponents: Collection<String>) {
         val releaseManagementVersion: String = System.getenv()["__RELEASE_MANAGEMENT_VERSION__"]
                 ?: throw IllegalStateException("The __RELEASE_MANAGEMENT_VERSION__ environment variable is not set")
 
         val projectPath = Paths.get(ReleaseManagementPluginTest::class.java.getResource("/teamcity-dependencies-registration/$project")!!.toURI())
         logger.debug("Project directory {}", projectPath)
         val gradleCommandAndLineProperties = Properties()
-        ReleaseManagementPluginTest::class.java.getResourceAsStream("/teamcity-dependencies-registration/teamcity-gradle-template-command.properties").use {
+        ReleaseManagementPluginTest::class.java.getResourceAsStream("/teamcity-dependencies-registration/$gradleCommandPropFile").use {
             gradleCommandAndLineProperties.load(it)
         }
         val gradleCommandAdnArguments = gradleCommandAndLineProperties.getProperty("command-and-arguments")

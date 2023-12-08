@@ -1,5 +1,6 @@
 //
 plugins {
+    id 'java-library'
     id 'org.octopusden.octopus-release-management'
 }
 
@@ -11,4 +12,7 @@ releaseManagement {
    }
 }
 
-task assemble
+dependencies {
+    api "com.${project["packageName"]}.dbsm.cloud:dbsm-cloud-common-core:${project['dbsm-cloud-common.version']}"
+    api "com.${project["packageName"]}.dbsm.cloud:dbsm-cloud-api:${project['dbsm-cloud-api.version']}"
+}

@@ -25,6 +25,7 @@ repositories {
 
 dependencies {
     api group: 'org.jfrog.buildinfo', name: 'build-info-extractor-gradle', version: project['jfrog-artifactory.version']
+    api group: 'org.octopusden.octopus.infrastructure', name: 'components-registry-service-client', version: '2.0.11'
     api group: 'org.apache.httpcomponents', name: 'httpclient', version: project['httpclient.version']
     api platform("com.fasterxml.jackson:jackson-bom:${project['jackson.version']}")
     api group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
@@ -163,32 +164,6 @@ if (project.hasProperty("nexus") && !project.version.toString().toUpperCase().en
 
 if (!escrowBuild) {
     project.tasks.findByPath("publish")?.dependsOn(":artifactoryPublish")
-}
-
-def supportedGroupIds = project.hasProperty("supportedGroupIds") ? project.property("supportedGroupIds").toString().replace('"', '') : ""
-
-task prepareConfiguration(type : DefaultTask) {
-    doFirst {
-        def targetDir = mkdir(resourceDir)
-        println "Target dir was created in ${targetDir}"
-        def configFile = file("$resourceDir/configuration.properties")
-        configFile.write("supportedGroupIds=$supportedGroupIds", "UTF-8")
-        println "File was generated in ${configFile.absoluteFile}"
-
-        sourceSets.each { srcSet ->
-            println "["+srcSet.name+"]"
-            print "-->Source directories: "+srcSet.allJava.srcDirs+"\n"
-            print "-->Output directories: "+srcSet.output.classesDirs.files+"\n"
-            print "-->Resources directories: "+srcSet.resources.files+"\n"
-            println ""
-        }
-    }
-}
-
-compileJava.dependsOn(prepareConfiguration)
-
-clean {
-    delete("$resourceDir/configuration.properties")
 }
 
 task openStagingRepository

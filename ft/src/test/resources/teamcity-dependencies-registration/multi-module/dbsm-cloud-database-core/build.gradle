@@ -5,6 +5,7 @@ plugins {
 dependencies {
     api project(':dbsm-cloud-database-api')
     api "com.${project["packageName"]}.dbsm.cloud:dbsm-cloud-common-core:${project['dbsm-cloud-common.version']}"
+    api "com.${project["packageName"]}.infrastructure:components-registry-api:${project['components-registry-api.version']}"
 }
 
 apply plugin: 'maven-publish'

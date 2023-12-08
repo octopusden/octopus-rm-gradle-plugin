@@ -565,7 +565,7 @@ The _'org.octopusden.octopus-release-management'_ Gradle plugin includes all req
 
 No additional plugin applying is needed.
 
-To register dependencies in RM 2.0 which should be included in component's release notes the section releaseDependencies of the releaseManagement extension has to be configured:
+Dependency registration performs automatically when property '-PincludeAllDependencies' is set. Release management gradle plugin adds all dependencies which are included to distribution and filtered by groups used in the Company. To add extra dependencies the section releaseDependencies of the releaseManagement extension has to be configured:
 
 .E.g.
 [source,groovy]
