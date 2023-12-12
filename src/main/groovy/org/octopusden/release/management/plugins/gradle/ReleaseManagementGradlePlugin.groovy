@@ -27,6 +27,7 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
     private static final String ARTIFACTORY_PUBLISH_CONFIGS_PROPERTY = 'com.jfrog.artifactory.publishConfigs'
     private static final String PLUGIN_STATE_PROPERTY = "releaseManagementConfigurationState"
     private static final String ESCROW_PULL_IMAGES_PARAMETER_NAME = "escrow.build-phase"
+    public static final String CYCLONE_DX_SKIP_PROPERTY = "cyclonedx.skip"
 
     @Override
     void apply(Project project) {
@@ -222,6 +223,23 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
                         dockerTask.pullImage()
                     }
                 }
+            }
+        }
+
+        if (project.rootProject.hasProperty(CYCLONE_DX_SKIP_PROPERTY) && !Boolean.parseBoolean(project.rootProject.property(CYCLONE_DX_SKIP_PROPERTY).toString())) {
+            project.allprojects { Project subProject ->
+                subProject.afterEvaluate {
+                    subProject.tasks.findByPath("assemble")?.dependsOn(":cyclonedxBom")
+                }
+            }
+
+            project.rootProject.pluginManager.apply("org.cyclonedx.bom")
+            project.rootProject.cyclonedxBom {
+                schemaVersion = "1.4"
+                destination = new File("build/generated-resources/sbom")
+                outputFormat = "json"
+                includeConfigs = ["runtimeClasspath"]
+                projectType = "application"
             }
         }
 
