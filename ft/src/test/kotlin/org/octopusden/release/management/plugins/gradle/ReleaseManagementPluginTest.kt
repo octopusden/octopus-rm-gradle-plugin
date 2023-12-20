@@ -39,7 +39,9 @@ class ReleaseManagementPluginTest {
             Arguments.of("multi-module", "teamcity-gradle-template-command.properties", listOf("DBSM-Cloud-Common:0.1.67", "DBSM-Cloud-API:0.1.71")),
             Arguments.of("multi-module", "teamcity-gradle-template-command-include-all-deps.properties", listOf("DBSM-Cloud-Common:0.1.67", "DBSM-Cloud-API:0.1.71", "components-registry-service:0.0.645")),
             Arguments.of("auto-registration", "teamcity-gradle-template-command.properties", listOf("web_portal3_doc:3.53.3-137")),
-            Arguments.of("auto-registration", "teamcity-gradle-template-command-include-all-deps.properties", listOf("web_portal3_doc:3.53.3-137", "DBSM-Cloud-API:0.1.71","DBSM-Cloud-Common:0.1.67"))
+            Arguments.of("auto-registration", "teamcity-gradle-template-command-include-all-deps.properties", listOf("web_portal3_doc:3.53.3-137", "DBSM-Cloud-API:0.1.71","DBSM-Cloud-Common:0.1.67")),
+            Arguments.of("without-configuration", "teamcity-gradle-template-command.properties", emptyList<String>()),
+            Arguments.of("without-configuration", "teamcity-gradle-template-command-include-all-deps.properties", listOf("DBSM-Cloud-API:0.1.71","DBSM-Cloud-Common:0.1.67"))
         )
 
         @JvmStatic
@@ -98,38 +100,50 @@ class ReleaseManagementPluginTest {
 
     @ParameterizedTest
     @MethodSource("dependedComponentsRegistrationData")
-    fun testDependedComponentsRegistration(project: String, gradleCommandPropFile: String, expectedComponents: Collection<String>) {
+    fun testDependedComponentsRegistration(
+        project: String,
+        gradleCommandPropFile: String,
+        expectedComponents: Collection<String>
+    ) {
         val releaseManagementVersion: String = System.getenv()["__RELEASE_MANAGEMENT_VERSION__"]
-                ?: throw IllegalStateException("The __RELEASE_MANAGEMENT_VERSION__ environment variable is not set")
+            ?: throw IllegalStateException("The __RELEASE_MANAGEMENT_VERSION__ environment variable is not set")
 
-        val projectPath = Paths.get(ReleaseManagementPluginTest::class.java.getResource("/teamcity-dependencies-registration/$project")!!.toURI())
+        val projectPath = Paths.get(
+            ReleaseManagementPluginTest::class.java.getResource("/teamcity-dependencies-registration/$project")!!
+                .toURI()
+        )
         logger.debug("Project directory {}", projectPath)
         val gradleCommandAndLineProperties = Properties()
-        ReleaseManagementPluginTest::class.java.getResourceAsStream("/teamcity-dependencies-registration/$gradleCommandPropFile").use {
-            gradleCommandAndLineProperties.load(it)
-        }
+        ReleaseManagementPluginTest::class.java.getResourceAsStream("/teamcity-dependencies-registration/$gradleCommandPropFile")
+            .use {
+                gradleCommandAndLineProperties.load(it)
+            }
         val gradleCommandAdnArguments = gradleCommandAndLineProperties.getProperty("command-and-arguments")
-                .replace("__RELEASE_MANAGEMENT_VERSION__", releaseManagementVersion)
-                .replace("__PACKAGE_NAME__", System.getProperty("packageName"))
-                .split(Regex("\\s+"))
+            .replace("__RELEASE_MANAGEMENT_VERSION__", releaseManagementVersion)
+            .replace("__PACKAGE_NAME__", System.getProperty("packageName"))
+            .split(Regex("\\s+"))
         val processBuilder: LocalProcessBuilder = ProcessBuilders.newProcessBuilder(LocalProcessSpec.LOCAL_COMMAND)
         val stdout = ArrayList<String>()
         val processInstance = processBuilder
-                .envVariables(mapOf("JAVA_HOME" to System.getProperty("java.home")))
-                .logger { it.logger(logger) }
-                .mapBatExtension()
-                .mapCmdExtension()
-                .workDirectory(projectPath)
-                .commandAndArguments("$projectPath/gradlew")
-                .stdOutConsumer(stdout::add)
-                .build()
-                .execute(*gradleCommandAdnArguments.toTypedArray())
-                .toCompletableFuture()
-                .get()
+            .envVariables(mapOf("JAVA_HOME" to System.getProperty("java.home")))
+            .logger { it.logger(logger) }
+            .mapBatExtension()
+            .mapCmdExtension()
+            .workDirectory(projectPath)
+            .commandAndArguments("$projectPath/gradlew")
+            .stdOutConsumer(stdout::add)
+            .build()
+            .execute(*gradleCommandAdnArguments.toTypedArray())
+            .toCompletableFuture()
+            .get()
         assertEquals(0, processInstance.exitCode, "Gradle execution failure")
-        val teamcitySetParameterOutputLine = stdout.find { line -> line.startsWith("##teamcity[setParameter name='DEPENDENCIES' value='") }
-        assertNotNull(teamcitySetParameterOutputLine)
-        val dependencies = teamcitySetParameterOutputLine!!.split(Regex("value='"))[1].replace("']", "").split(Regex("\\s*,\\s*"))
+        val dependencies =
+            stdout.find { line -> line.startsWith("##teamcity[setParameter name='DEPENDENCIES' value='") }
+                ?.split(Regex("value='"))
+                ?.get(1)
+                ?.replace("']", "")
+                ?.split(Regex("\\s*,\\s*"))
+                ?: emptyList()
         assertThat(dependencies).containsExactlyInAnyOrderElementsOf(expectedComponents)
     }
 

@@ -1,0 +1,11 @@
+//
+pluginManagement {
+    plugins {
+        id 'org.octopusden.octopus-release-management' version settings['octopus-release-management.version']
+    }
+}
+
+rootProject.name = 'dbsm-cloud-database'
+
+include ':dbsm-cloud-database-api'
+include ':dbsm-cloud-database-core'
