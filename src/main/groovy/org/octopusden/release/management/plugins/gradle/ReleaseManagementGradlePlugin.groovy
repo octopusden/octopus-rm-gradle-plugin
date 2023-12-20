@@ -153,7 +153,7 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
 
             if (!rootProject.gradle.startParameter.offline && !project.rootProject.extensions.extraProperties.escrowBuild) {
                 def releaseManagementDependenciesExtension = project.rootProject.extensions.getByType(ReleaseManagementDependenciesExtension.class)
-                if (releaseManagementDependenciesExtension.releaseDependenciesConfiguration.isTouched()) {
+                if (releaseManagementDependenciesExtension.releaseDependenciesConfiguration.isTouched() || rootProject.findProperty("includeAllDependencies")?.toString()?.equalsIgnoreCase("true")) {
                     if (releaseManagementDependenciesExtension.releaseDependenciesConfiguration.autoRegistration || rootProject.hasProperty("buildVersion")) {
                         def exportDependenciesToTeamcityTask = rootProject.getTasksByName("exportDependenciesToTeamcity", false)[0] as ExportDependenciesToTeamcityTask
                         rootProject.gradle.buildFinished { BuildResult buildResult ->

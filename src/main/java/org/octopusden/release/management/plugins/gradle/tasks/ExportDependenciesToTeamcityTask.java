@@ -59,7 +59,11 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
     @TaskAction
     public void exportDependencies() {
         printProperties();
-        final ReleaseManagementDependenciesExtension releaseManagementDependenciesExtension = (ReleaseManagementDependenciesExtension) getProject().getRootProject().getExtensions().findByName("releaseManagement");
+        final ReleaseManagementDependenciesExtension releaseManagementDependenciesExtension = (ReleaseManagementDependenciesExtension) getProject()
+                .getRootProject()
+                .getExtensions()
+                .findByName("releaseManagement");
+
         final ReleaseDependenciesConfiguration releaseDependenciesConfiguration = (ReleaseDependenciesConfiguration) releaseManagementDependenciesExtension.getReleaseDependenciesConfiguration();
 
         final String dependenciesString;
@@ -96,13 +100,11 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
                 .map(ca -> new ArtifactDependency(ca.getGroup(), ca.getName(), ca.getVersion()))
                 .collect(Collectors.toSet());
 
-        final List<String> componentsFromDependencies = getComponentsRegistryServiceClient().findArtifactComponentsByArtifacts(artifacts)
+        return getComponentsRegistryServiceClient().findArtifactComponentsByArtifacts(artifacts)
                 .getArtifactComponents()
                 .stream()
                 .map(ac -> String.format(COMPONENT_FORMAT, ac.getComponent().getId(), ac.getComponent().getVersion()))
                 .collect(Collectors.toList());
-
-        return componentsFromDependencies;
     }
 
     private ComponentsRegistryServiceClient getComponentsRegistryServiceClient() {
