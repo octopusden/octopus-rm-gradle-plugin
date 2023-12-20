@@ -31,8 +31,9 @@ import java.util.stream.Stream;
 public class ExportDependenciesToTeamcityTask extends DefaultTask {
 
     private static final String COMPONENT_FORMAT = "%s:%s";
+    private static final String COMPONENT_REGISTRY_SERVICE_URL_PROPERTY = "COMPONENT_REGISTRY_SERVICE_URL";
 
-    private final String componentRegistryServiceUrl = System.getenv("COMPONENT_REGISTRY_SERVICE_URL");
+    private final String componentsRegistryServiceUrl = System.getenv(COMPONENT_REGISTRY_SERVICE_URL_PROPERTY);
 
     private List<String> excludedConfigurations = Arrays.asList("sourceArtifacts", "-runtime", "runtimeElements", "runtimeOnly", "testRuntimeOnly", "testRuntime");
 
@@ -40,13 +41,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
             .map(v -> Boolean.parseBoolean(v.toString()))
             .orElse(false);
 
-    private ComponentsRegistryServiceClient componentsRegistryServiceClient = new ClassicComponentsRegistryServiceClient(new ClassicComponentsRegistryServiceClientUrlProvider() {
-        @NotNull
-        @Override
-        public String getApiUrl() {
-            return componentRegistryServiceUrl;
-        }
-    });
+    private ComponentsRegistryServiceClient componentsRegistryServiceClient;
 
     public ExportDependenciesToTeamcityTask() {
     }
@@ -86,7 +81,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
     }
 
     private void printProperties() {
-        getLogger().info("ExportDependenciesToTeamcityTask Parameters: excludedConfigurations={}, includeAllDependencies={}, componentRegistryServiceUrl={}", excludedConfigurations, includeAllDependencies, componentRegistryServiceUrl);
+        getLogger().info("ExportDependenciesToTeamcityTask Parameters: excludedConfigurations={}, includeAllDependencies={}, componentRegistryServiceUrl={}", excludedConfigurations, includeAllDependencies, componentsRegistryServiceUrl);
     }
 
     @NotNull
@@ -101,13 +96,29 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
                 .map(ca -> new ArtifactDependency(ca.getGroup(), ca.getName(), ca.getVersion()))
                 .collect(Collectors.toSet());
 
-        final List<String> componentsFromDependencies = componentsRegistryServiceClient.findArtifactComponentsByArtifacts(artifacts)
+        final List<String> componentsFromDependencies = getComponentsRegistryServiceClient().findArtifactComponentsByArtifacts(artifacts)
                 .getArtifactComponents()
                 .stream()
                 .map(ac -> String.format(COMPONENT_FORMAT, ac.getComponent().getId(), ac.getComponent().getVersion()))
                 .collect(Collectors.toList());
 
         return componentsFromDependencies;
+    }
+
+    private ComponentsRegistryServiceClient getComponentsRegistryServiceClient() {
+        if (componentsRegistryServiceClient == null) {
+            if (componentsRegistryServiceUrl == null) {
+                throw new IllegalStateException(String.format("System Env variable '%s' must be set", COMPONENT_REGISTRY_SERVICE_URL_PROPERTY));
+            }
+            componentsRegistryServiceClient = new ClassicComponentsRegistryServiceClient(new ClassicComponentsRegistryServiceClientUrlProvider() {
+                @NotNull
+                @Override
+                public String getApiUrl() {
+                    return componentsRegistryServiceUrl;
+                }
+            });
+        }
+        return componentsRegistryServiceClient;
     }
 
     @NotNull
@@ -167,7 +178,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
     }
 
     private Predicate<ModuleComponentIdentifier> getSupportedGroupIdsPredicate() {
-        final Set<String> supportedGroupIds = componentsRegistryServiceClient.getSupportedGroupIds();
+        final Set<String> supportedGroupIds = getComponentsRegistryServiceClient().getSupportedGroupIds();
         return componentArtifact -> {
             final boolean passed = supportedGroupIds.stream().anyMatch(g -> componentArtifact.getGroup().startsWith(g));
             getLogger().info("ExportDependenciesToTeamcityTask SupportedGroups dependencies filter: {} passed = {}", componentArtifact, passed);
