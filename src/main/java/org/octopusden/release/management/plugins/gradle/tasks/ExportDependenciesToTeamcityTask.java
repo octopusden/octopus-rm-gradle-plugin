@@ -11,6 +11,7 @@ import org.octopusden.octopus.components.registry.client.ComponentsRegistryServi
 import org.octopusden.octopus.components.registry.client.impl.ClassicComponentsRegistryServiceClient;
 import org.octopusden.octopus.components.registry.client.impl.ClassicComponentsRegistryServiceClientUrlProvider;
 import org.octopusden.octopus.components.registry.core.dto.ArtifactDependency;
+import org.octopusden.octopus.components.registry.core.dto.VersionedComponent;
 import org.octopusden.release.management.plugins.gradle.ReleaseDependenciesConfiguration;
 import org.octopusden.release.management.plugins.gradle.ReleaseManagementDependenciesExtension;
 import org.octopusden.release.management.plugins.gradle.dto.ComponentArtifact;
@@ -21,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
@@ -103,7 +105,18 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         return getComponentsRegistryServiceClient().findArtifactComponentsByArtifacts(artifacts)
                 .getArtifactComponents()
                 .stream()
-                .map(ac -> String.format(COMPONENT_FORMAT, ac.getComponent().getId(), ac.getComponent().getVersion()))
+                .map(ac -> {
+                    final VersionedComponent component = ac.getComponent();
+                    final String result;
+                    if (component == null) {
+                        getLogger().error("ExportDependenciesToTeamcityTask Component not found by {}", ac.getArtifact());
+                        result = null;
+                    } else {
+                        result = String.format(COMPONENT_FORMAT, component.getId(), component.getVersion());
+                    }
+                    return result;
+                })
+                .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
