@@ -38,7 +38,7 @@ class ReleaseManagementPluginTest {
         fun dependedComponentsRegistrationData(): Stream<Arguments> =  Stream.of(
             Arguments.of("multi-module", "teamcity-gradle-template-command.properties", listOf("DBSM-Cloud-Common:0.1.67", "DBSM-Cloud-API:0.1.71")),
             Arguments.of("multi-module", "teamcity-gradle-template-command-include-all-deps.properties", listOf("DBSM-Cloud-Common:0.1.67", "DBSM-Cloud-API:0.1.71", "components-registry-service:0.0.645")),
-            Arguments.of("auto-registration", "teamcity-gradle-template-command.properties", listOf("web_portal3_doc:3.53.3-137")),
+            Arguments.of("auto-registration", "teamcity-gradle-template-command.properties", listOf("web_portal3_doc:3.53.3-137","web_portal3_doc_ch:3.53.3-137")),
             Arguments.of("auto-registration", "teamcity-gradle-template-command-include-all-deps.properties", listOf("web_portal3_doc:3.53.3-137", "DBSM-Cloud-API:0.1.71","DBSM-Cloud-Common:0.1.67")),
             Arguments.of("without-configuration", "teamcity-gradle-template-command.properties", emptyList<String>()),
             Arguments.of("without-configuration", "teamcity-gradle-template-command-include-all-deps.properties", listOf("DBSM-Cloud-API:0.1.71","DBSM-Cloud-Common:0.1.67"))
