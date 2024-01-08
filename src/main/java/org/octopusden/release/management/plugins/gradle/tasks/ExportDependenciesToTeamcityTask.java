@@ -79,7 +79,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
             dependenciesString = releaseDependenciesConfiguration.getComponents()
                     .stream()
                     .map(c -> String.format(COMPONENT_FORMAT, c.getName(), c.getVersion()))
-                    .collect(Collectors.joining());
+                    .collect(Collectors.joining(","));
         }
 
         getLogger().info("ExportDependenciesToTeamcityTask Found dependencies: {}", dependenciesString);
