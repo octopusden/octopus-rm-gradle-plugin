@@ -8,8 +8,16 @@ class ReleaseManagementDependenciesExtension {
         releaseDependenciesClosure.call()
     }
 
-    def component(Map componentMap) {
-        releaseDependenciesConfiguration.component(componentMap)
+    def releaseDependencies(Map... components) {
+        components.each {
+            releaseDependenciesConfiguration.component(it)
+        }
+    }
+
+    def releaseDependencies(String... components) {
+        components.each {
+            releaseDependenciesConfiguration.component(it)
+        }
     }
 
     def getReleaseDependenciesConfiguration() {
