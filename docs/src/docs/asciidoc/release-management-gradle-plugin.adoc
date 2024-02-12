@@ -567,7 +567,7 @@ No additional plugin applying is needed.
 
 Dependency registration performs automatically when property '-PincludeAllDependencies' is set. Release management gradle plugin adds all dependencies which are included to distribution and filtered by groups used in the Company. To add extra dependencies the section releaseDependencies of the releaseManagement extension has to be configured:
 
-.E.g.
+.E.g. Groovy build.gradle
 [source,groovy]
 ----
 plugins {
@@ -579,6 +579,21 @@ releaseManagement {
         component name: "deployer", version: project.'deployer.version'
         component name: "deployerDSL", version: project.'deployer.dsl.version'
     }
+}
+----
+
+.E.g. Kotlin build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    id 'org.octopusden.octopus-release-management'
+}
+
+releaseManagement {
+    releaseDependencies(
+        mapOf("name" to "deployer", "version" to project.properties["deployer.version"]),
+        mapOf("name" to "deployerDSL", "version" to project.properties["deployer.dsl.version"]),
+    )
 }
 ----
 
