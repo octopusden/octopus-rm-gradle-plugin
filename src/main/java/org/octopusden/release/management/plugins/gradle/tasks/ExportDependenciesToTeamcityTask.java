@@ -74,11 +74,16 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
             final List<String> componentsFromDependencies = getArtifactDependenciesString(releaseDependenciesConfiguration);
             final List<String> componentsFromConfiguration = releaseDependenciesConfiguration.getComponents().stream().map(c -> String.format(COMPONENT_FORMAT, c.getName(), c.getVersion())).collect(Collectors.toList());
 
-            dependenciesString = Stream.concat(componentsFromDependencies.stream(), componentsFromConfiguration.stream()).collect(Collectors.joining(","));
+            dependenciesString = Stream.concat(componentsFromDependencies.stream(), componentsFromConfiguration.stream())
+                    .distinct()
+                    .sorted()
+                    .collect(Collectors.joining(","));
         } else {
             dependenciesString = releaseDependenciesConfiguration.getComponents()
                     .stream()
                     .map(c -> String.format(COMPONENT_FORMAT, c.getName(), c.getVersion()))
+                    .distinct()
+                    .sorted()
                     .collect(Collectors.joining(","));
         }
 
