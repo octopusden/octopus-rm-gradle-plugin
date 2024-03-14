@@ -39,7 +39,11 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
 
     private List<String> excludedConfigurations = Arrays.asList("sourceArtifacts", "-runtime", "runtimeElements", "runtimeOnly", "testRuntimeOnly", "testRuntime");
 
-    private boolean includeAllDependencies = Optional.ofNullable(getProject().findProperty("includeAllDependencies"))
+    private final boolean includeAllDependencies = Optional.ofNullable(getProject().findProperty("includeAllDependencies"))
+            .map(v -> Boolean.parseBoolean(v.toString()))
+            .orElse(false);
+
+    private final boolean includeDirectDependencies = Optional.ofNullable(getProject().findProperty("includeDirectDependencies"))
             .map(v -> Boolean.parseBoolean(v.toString()))
             .orElse(false);
 
@@ -61,6 +65,11 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
     @TaskAction
     public void exportDependencies() {
         printProperties();
+
+        if (includeAllDependencies && includeDirectDependencies) {
+            throw new IllegalStateException("Both includeAllDependencies and includeDirectDependencies cannot be set to true");
+        }
+
         final ReleaseManagementDependenciesExtension releaseManagementDependenciesExtension = (ReleaseManagementDependenciesExtension) getProject()
                 .getRootProject()
                 .getExtensions()
@@ -69,16 +78,21 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         final ReleaseDependenciesConfiguration releaseDependenciesConfiguration = (ReleaseDependenciesConfiguration) releaseManagementDependenciesExtension.getReleaseDependenciesConfiguration();
 
         final String dependenciesString;
-        if (releaseDependenciesConfiguration.isFromDependencies() || includeAllDependencies) {
+        if (releaseDependenciesConfiguration.isFromDependencies() || autoDependencies()) {
 
             final List<String> componentsFromDependencies = getArtifactDependenciesString(releaseDependenciesConfiguration);
             final List<String> componentsFromConfiguration = releaseDependenciesConfiguration.getComponents().stream().map(c -> String.format(COMPONENT_FORMAT, c.getName(), c.getVersion())).collect(Collectors.toList());
 
-            dependenciesString = Stream.concat(componentsFromDependencies.stream(), componentsFromConfiguration.stream()).collect(Collectors.joining(","));
+            dependenciesString = Stream.concat(componentsFromDependencies.stream(), componentsFromConfiguration.stream())
+                    .distinct()
+                    .sorted()
+                    .collect(Collectors.joining(","));
         } else {
             dependenciesString = releaseDependenciesConfiguration.getComponents()
                     .stream()
                     .map(c -> String.format(COMPONENT_FORMAT, c.getName(), c.getVersion()))
+                    .distinct()
+                    .sorted()
                     .collect(Collectors.joining(","));
         }
 
@@ -87,7 +101,8 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
     }
 
     private void printProperties() {
-        getLogger().info("ExportDependenciesToTeamcityTask Parameters: excludedConfigurations={}, includeAllDependencies={}, componentRegistryServiceUrl={}", excludedConfigurations, includeAllDependencies, componentsRegistryServiceUrl);
+        getLogger().info("ExportDependenciesToTeamcityTask Parameters: excludedConfigurations={}, includeAllDependencies={}, includeDirectDependencies={}, componentRegistryServiceUrl={}",
+                excludedConfigurations, includeAllDependencies, includeDirectDependencies, componentsRegistryServiceUrl);
     }
 
     @NotNull
@@ -145,7 +160,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         final List<Predicate<ModuleComponentIdentifier>> filters = new ArrayList<>();
         filters.add(supportedGroupIdsPredicate);
         filters.add(excludePredicate);
-        if (!includeAllDependencies) {
+        if (!autoDependencies()) {
             filters.add(includePredicate);
         }
         return filters;
@@ -157,6 +172,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         final Configuration copiedConfiguration = configuration.copyRecursive();
         copiedConfiguration.setCanBeConsumed(true);
         copiedConfiguration.setCanBeResolved(true);
+        copiedConfiguration.setTransitive(includeAllDependencies);
 
         final List<ModuleComponentIdentifier> dependencies = copiedConfiguration.getIncoming()
                 .getResolutionResult()
@@ -231,5 +247,9 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
             getLogger().info("ExportDependenciesToTeamcityTask Include dependencies filter: {} passed = {}", componentArtifact, passed);
             return passed;
         };
+    }
+
+    private boolean autoDependencies() {
+        return includeAllDependencies || includeDirectDependencies;
     }
 }
