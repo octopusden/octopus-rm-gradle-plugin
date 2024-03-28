@@ -182,7 +182,11 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
                 .map(moduleComponentIdentifier -> (ModuleComponentIdentifier) ((ResolvedDependencyResult) moduleComponentIdentifier).getSelected().getId())
                 .collect(Collectors.toList());
 
-        getLogger().info("ExportDependenciesToTeamcityTask Configuration '{}', dependencies candidates: {}", configuration.getName(), this.getTaskDependencies());
+        getLogger().info("ExportDependenciesToTeamcityTask Configuration '{}', dependencies candidates: {}",
+                configuration.getName(), dependencies
+                        .stream()
+                        .map(x -> x.getGroup() + ":" + x.getModule() + ":" + x.getVersion())
+                        .collect(Collectors.joining(",")));
 
         return dependencies.stream()
                 .filter(componentIdentifier -> {
