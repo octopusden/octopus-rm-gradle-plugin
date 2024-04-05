@@ -220,7 +220,7 @@ buildscript {
 apply plugin: 'org.octopusden.octopus-release-management'
 ----
 
-=== The OW Release Management gradle plugin version
+=== The Octopus Release Management gradle plugin version
 
 The recommended way to configure _org.octopusden.octopus-release-management_ plugin version is to use plugins DSL and project properties placed in gradle.properties
 
