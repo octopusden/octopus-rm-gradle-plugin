@@ -220,7 +220,7 @@ buildscript {
 apply plugin: 'org.octopusden.octopus-release-management'
 ----
 
-=== The OW Release Management gradle plugin version
+=== The Octopus Release Management gradle plugin version
 
 The recommended way to configure _org.octopusden.octopus-release-management_ plugin version is to use plugins DSL and project properties placed in gradle.properties
 
@@ -557,15 +557,21 @@ publishing {
 }
 ----
 
-== Supporting Gradle prior 6
-
 == Register dependencies for RM 2.0
 
 The _'org.octopusden.octopus-release-management'_ Gradle plugin includes all required functionality
 
 No additional plugin applying is needed.
 
-Dependency registration performs automatically when property '-PincludeAllDependencies' is set. Release management gradle plugin adds all dependencies which are included to distribution and filtered by groups used in the Company. To add extra dependencies the section releaseDependencies of the releaseManagement extension has to be configured:
+Release management gradle plugin adds all dependencies which are included to distribution and filtered by groups used in the Company.
+
+The outcome is a list of dependencies that will be stored in the *DEPENDENCIES* parameter of the TeamCity build.
+
+The release dependencies registration can be done in three ways: automatically, based on explicit configuration, or using a combination of both.
+
+* The automatic registration is triggered when the property '*-PincludeAllDependencies*' is set. This means that all direct and transitive dependencies of a project will be included automatically. The dependency resolution is based on standard Gradle mechanisms.
+
+* For explicit configuration, the *releaseDependencies* section of the *releaseManagement* extension is used. Here, you can specify the components and their versions that you want to include as dependencies.
 
 .E.g. Groovy build.gradle
 [source,groovy]
