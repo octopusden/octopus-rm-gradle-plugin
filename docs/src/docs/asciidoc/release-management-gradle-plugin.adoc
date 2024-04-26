@@ -58,139 +58,9 @@ NEXUS_USER=<your domain username>
 NEXUS_PASSWORD=<your domain password>
 ----
 
-== Configuring project
+== Use Octopus Release Management gradle plugin
 
-The project should be configured to use https://docs.gradle.org/current/userguide/gradle_wrapper.html[gradle wrapper]
-
-
-=== Use DEV/Staging repository
-
-This can be only needed if you want to use not yet released dependencies (i.e. from staging/dev repository)
-
-Access to DEV/Staging repository deployed artifacts could be done in few ways:
-
-. Use staging() method in Groovy based build project repositories DSL (Kotlin DSL is not supported).
-+
-.script block:
-[source,groovy]
-----
-repositories {
-    staging()
-}
-----
-+
-.buildscript block:
-[source,groovy]
-----
-buildscript {
-    repositories {
-        staging()
-    }
-}
-----
-. Specify use_dev_repository project's property
-+
-----
-use_dev_repository=all|plugins|buildscript|dependencies
-----
-+
-The property accepts command separated values (one or more)
-The configuration could be done:
-+
-.. In gradle.properties
-+
-----
-use_dev_repository=plugins
-----
-.. Via command line -P parameter
-+
-----
-gradle -Puse_dev_repository=plugins,dependencies ...
-----
-.. https://docs.gradle.org/current/userguide/build_environment.html#sec:project_properties[Via environment variable]
-+
-----
-export ORG_GRADLE_PROJECT_use_dev_repository=all
-----
-
-. Manually configured repository *(NOT RECOMMENDED)*
-
-.. Plugin management (settings.gradle)
-+
-[source,groovy,subs="attributes"]
-----
-pluginManagement {
-    repositories {
-        maven {
-            credentials {
-                username = settings['NEXUS_USER']
-                password = settings['NEXUS_PASSWORD']
-            }
-            url '{repository-url}'
-            metadataSources {
-                mavenPom()
-                artifact()
-            }
-        }
-   }
-}
-----
-.. Repositories groovy buildscript DSL
-+
-[source,groovy,subs="attributes"]
-----
-buildscript {
-    repositories {
-        maven {
-            credentials {
-                username = NEXUS_USER
-                password = NEXUS_PASSWORD
-            }
-            url '{repository-url}'
-            metadataSources {
-                mavenPom()
-                artifact()
-            }
-        }
-    }
-}
-----
-.. Dependencies groovy repository DSL
-+
-[source,groovy,subs="attributes"]
-----
-repositories {
-    maven {
-        credentials {
-            username = NEXUS_USER
-            password = NEXUS_PASSWORD
-        }
-        url '{repository-url}'
-        metadataSources {
-            mavenPom()
-            artifact()
-        }
-    }
-}
-----
-+
-*Why this is not recommended*: The repository name or authentication schema or parameter names could be changed in any time which results in project build failure
-
-=== Gradle wrapper
-
-To configure project to use https://docs.gradle.org/current/userguide/gradle_wrapper.html[gradle wrapper] or to update gradle wrapper run in project directory
-----
-gradle wrapper
-----
-The added files gradlew, _gradlew.bat  and added directory gradle/wrapper content should be added to VCS
-
-The gradle build step on TeamCity build configuration has to be configured to use gradle wrapper as follows:
-
-image::images/teamcity-configure-gradle-wrapper.png[TeamCity build configuration gradle wrapper settings]
-
-=== Use Octopus Release Management gradle plugin
-
-==== The plugins DSL
+=== The plugins DSL
 
 To support and Continues integration the project has to be configured to use org.octopusden.octopus-release-management plugin.
 
@@ -201,7 +71,7 @@ plugins {
 }
 ----
 
-No need more. The staging plugin will by applied by plugin and project will be configured.
+No need more.
 
 ==== Legacy Plugin Application
 
@@ -253,27 +123,11 @@ and put property _octopus-release-management.version_ with version in the projec
 octopus-release-management.version={version-label}
 ----
 
-=== TeamCity compile and continues delivery build configuration
-
-This section is described how to configure Gradle based project to build on TeamCity.
-
-The user build customization (specify additional parameters, options and etc) has to be done by modifying build configuration parameter GRADLE_EXTRA_PARAMETERS
-
-.Do not specify build customization in below steps:
-. Gradle tasks
-. Additional Gradle command line parameters
-. JVM command line parameters
-
-.To customize above parameters use build configuration parameters:
-. GRADLE_TASK
-. GRADLE_EXTRA_PARAMETERS
-. JAVA_OPTS
-
 === Publishing artifacts
 
 To publish artifacts need to apply _org.octopusden.octopus-release-management_ and maven-publish plugins and configure publishing extension.
 
-No repository configuration is needed anymore.
+No repository configuration is needed anymore. The plugin publishes artifacts in Staging (DEV) repository named _rnd-maven-dev-local_ by default.
 
 .For example
 [source,groovy]
@@ -309,6 +163,15 @@ publishing {
         }
     }
 }
+----
+
+==== Publish to Release repository
+
+To publish directly to Release repository _rnd-maven-release-local_ it is required to specify Gradle project's parameter _publishToReleaseRepository_ to true
+
+.gradle.properties
+----
+publishToReleaseRepository=true
 ----
 
 ==== Specify dependencies for published artifacts
@@ -364,15 +227,6 @@ publishing {
         }
     }
 }
-----
-
-==== Publish to Releases repository
-
-To publish to Releases repository need to specify Gradle project's parameter _publishToReleaseRepository_ to true
-
-.gradle.properties
-----
-publishToReleaseRepository=true
 ----
 
 ==== Publish aggregation build
