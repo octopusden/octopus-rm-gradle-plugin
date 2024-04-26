@@ -60,7 +60,7 @@ NEXUS_PASSWORD=<your domain password>
 
 == Use Octopus Release Management gradle plugin
 
-==== The plugins DSL
+=== The plugins DSL
 
 To support and Continues integration the project has to be configured to use org.octopusden.octopus-release-management plugin.
 
