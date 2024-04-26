@@ -1,0 +1,12 @@
+//
+plugins {
+    id 'java-library'
+    id 'org.octopusden.octopus-release-management'
+}
+
+group = 'org.octopusden.dbsm.cloud'
+
+dependencies {
+    api "com.${project["packageName"]}.dbsm.cloud:dbsm-cloud-database-client:${project['dbsm-cloud-database-client.version']}"
+}
+
