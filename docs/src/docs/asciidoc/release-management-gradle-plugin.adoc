@@ -71,7 +71,7 @@ plugins {
 }
 ----
 
-No need more. The plugin will be applied by plugin and project will be configured.
+No need more.
 
 ==== Legacy Plugin Application
 
