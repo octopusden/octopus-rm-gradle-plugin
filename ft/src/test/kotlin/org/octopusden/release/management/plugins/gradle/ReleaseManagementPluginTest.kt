@@ -44,8 +44,8 @@ class ReleaseManagementPluginTest {
             Arguments.of("without-configuration", "teamcity-gradle-template-command-include-all-deps.properties", listOf("DBSM-Cloud-API:0.1.71","DBSM-Cloud-Common:0.1.67")),
 
             Arguments.of("transitive-dependencies", "teamcity-gradle-template-command.properties", emptyList<String>()),
-            Arguments.of("transitive-dependencies", "teamcity-gradle-template-command-include-all-deps.properties", listOf("DBSM-Cloud-API:0.1.55", "DBSM-Cloud-Client:0.1.7" ,"DBSM-Cloud-Common:0.1.54","DBSM-Cloud-Database:0.1.131","platform-commons:1.2.761")),
-            Arguments.of("transitive-dependencies", "teamcity-gradle-template-command-include-direct-deps.properties", listOf("DBSM-Cloud-Database:0.1.131")),
+            Arguments.of("transitive-dependencies", "teamcity-gradle-template-command-include-all-deps.properties", listOf("DBSM-Cloud-API:0.1.55", "DBSM-Cloud-Common:0.1.54")),
+            Arguments.of("transitive-dependencies", "teamcity-gradle-template-command-include-direct-deps.properties", listOf("DBSM-Cloud-Common:0.1.54"))
             )
 
         @JvmStatic

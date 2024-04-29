@@ -7,6 +7,6 @@ plugins {
 group = 'org.octopusden.dbsm.cloud'
 
 dependencies {
-    api "com.${project["packageName"]}.dbsm.cloud:dbsm-cloud-database-client:${project['dbsm-cloud-database-client.version']}"
+    api "com.${project["packageName"]}.dbsm.cloud:dbsm-cloud-common-core:${project['dbsm-cloud-common-core.version']}"
 }
 
