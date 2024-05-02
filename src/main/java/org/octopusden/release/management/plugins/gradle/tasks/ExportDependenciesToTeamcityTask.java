@@ -43,7 +43,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
             .map(v -> Boolean.parseBoolean(v.toString()))
             .orElse(false);
 
-    private final boolean includeDirectDependencies = Optional.ofNullable(getProject().findProperty("includeDirectDependencies"))
+    private final boolean includeTransitive = Optional.ofNullable(getProject().findProperty("includeTransitive"))
             .map(v -> Boolean.parseBoolean(v.toString()))
             .orElse(false);
 
@@ -66,8 +66,8 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
     public void exportDependencies() {
         printProperties();
 
-        if (includeAllDependencies && includeDirectDependencies) {
-            throw new IllegalStateException("Both includeAllDependencies and includeDirectDependencies cannot be set to true");
+        if (includeTransitive && !includeAllDependencies) {
+            throw new IllegalStateException("The option includeTransitive can be used only if the option includeAllDependencies was set to true");
         }
 
         final ReleaseManagementDependenciesExtension releaseManagementDependenciesExtension = (ReleaseManagementDependenciesExtension) getProject()
@@ -78,7 +78,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         final ReleaseDependenciesConfiguration releaseDependenciesConfiguration = (ReleaseDependenciesConfiguration) releaseManagementDependenciesExtension.getReleaseDependenciesConfiguration();
 
         final String dependenciesString;
-        if (releaseDependenciesConfiguration.isFromDependencies() || calculateDependencies()) {
+        if (releaseDependenciesConfiguration.isFromDependencies() || includeAllDependencies ) {
 
             final List<String> componentsFromDependencies = getArtifactDependenciesString(releaseDependenciesConfiguration);
             final List<String> componentsFromConfiguration = releaseDependenciesConfiguration.getComponents()
@@ -103,8 +103,8 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
     }
 
     private void printProperties() {
-        getLogger().info("ExportDependenciesToTeamcityTask Parameters: excludedConfigurations={}, includeAllDependencies={}, includeDirectDependencies={}, componentRegistryServiceUrl={}",
-                excludedConfigurations, includeAllDependencies, includeDirectDependencies, componentsRegistryServiceUrl);
+        getLogger().info("ExportDependenciesToTeamcityTask Parameters: excludedConfigurations={}, includeAllDependencies={}, includeTransitive={}, componentRegistryServiceUrl={}",
+                excludedConfigurations, includeAllDependencies, includeTransitive, componentsRegistryServiceUrl);
     }
 
     @NotNull
@@ -162,7 +162,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         final List<Predicate<ModuleComponentIdentifier>> filters = new ArrayList<>();
         filters.add(supportedGroupIdsPredicate);
         filters.add(excludePredicate);
-        if (!calculateDependencies()) {
+        if (! includeAllDependencies) {
             filters.add(includePredicate);
         }
         return filters;
@@ -174,9 +174,9 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         final Configuration copiedConfiguration = configuration.copyRecursive();
         copiedConfiguration.setCanBeConsumed(true);
         copiedConfiguration.setCanBeResolved(true);
-        copiedConfiguration.setTransitive(includeAllDependencies);
+        copiedConfiguration.setTransitive(includeTransitive);
         getLogger().info("ExportDependenciesToTeamcityTask Configuration '{}' dependencies, transitive = {}",
-                configuration.getName(), includeAllDependencies);
+                configuration.getName(), includeTransitive);
 
         final List<ModuleComponentIdentifier> dependencies = copiedConfiguration.getIncoming()
                 .getResolutionResult()
@@ -253,7 +253,4 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         };
     }
 
-    private boolean calculateDependencies() {
-        return includeAllDependencies || includeDirectDependencies;
-    }
 }
