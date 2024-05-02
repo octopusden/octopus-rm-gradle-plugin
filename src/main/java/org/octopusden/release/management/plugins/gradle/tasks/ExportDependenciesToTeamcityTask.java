@@ -44,10 +44,6 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
             .map(v -> Boolean.parseBoolean(v.toString()))
             .orElse(false);
 
-    private final boolean includeTransitive = Optional.ofNullable(getProject().findProperty("includeTransitive"))
-            .map(v -> Boolean.parseBoolean(v.toString()))
-            .orElse(false);
-
     private ComponentsRegistryServiceClient componentsRegistryServiceClient;
 
     public ExportDependenciesToTeamcityTask() {
@@ -66,10 +62,6 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
     @TaskAction
     public void exportDependencies() {
         printProperties();
-
-        if (includeTransitive && !includeAllDependencies) {
-            throw new GradleException("The option includeTransitive can be used only if the option includeAllDependencies is set to true");
-        }
 
         final ReleaseManagementDependenciesExtension releaseManagementDependenciesExtension = (ReleaseManagementDependenciesExtension) getProject()
                 .getRootProject()
@@ -104,8 +96,8 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
     }
 
     private void printProperties() {
-        getLogger().info("ExportDependenciesToTeamcityTask Parameters: excludedConfigurations={}, includeAllDependencies={}, includeTransitive={}, componentRegistryServiceUrl={}",
-                excludedConfigurations, includeAllDependencies, includeTransitive, componentsRegistryServiceUrl);
+        getLogger().info("ExportDependenciesToTeamcityTask Parameters: excludedConfigurations={}, includeAllDependencies={}, componentRegistryServiceUrl={}",
+                excludedConfigurations, includeAllDependencies, componentsRegistryServiceUrl);
     }
 
     @NotNull
@@ -175,9 +167,8 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         final Configuration copiedConfiguration = configuration.copyRecursive();
         copiedConfiguration.setCanBeConsumed(true);
         copiedConfiguration.setCanBeResolved(true);
-        copiedConfiguration.setTransitive(includeTransitive);
-        getLogger().info("ExportDependenciesToTeamcityTask Configuration '{}' dependencies, transitive = {}",
-                configuration.getName(), includeTransitive);
+        copiedConfiguration.setTransitive(false);
+        getLogger().info("ExportDependenciesToTeamcityTask Configuration '{}' dependencies", configuration.getName());
 
         final List<ModuleComponentIdentifier> dependencies = copiedConfiguration.getIncoming()
                 .getResolutionResult()
