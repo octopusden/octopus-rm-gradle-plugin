@@ -67,7 +67,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         printProperties();
 
         if (includeTransitive && !includeAllDependencies) {
-            throw new IllegalStateException("The option includeTransitive can be used only if the option includeAllDependencies was set to true");
+            throw new IllegalStateException("The option includeTransitive can be used only if the option includeAllDependencies is set to true");
         }
 
         final ReleaseManagementDependenciesExtension releaseManagementDependenciesExtension = (ReleaseManagementDependenciesExtension) getProject()
