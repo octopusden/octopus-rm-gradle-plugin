@@ -1,0 +1,5 @@
+pluginManagement {
+    plugins {
+        id 'org.octopusden.octopus-release-management' version settings['octopus-release-management.version']
+    }
+}

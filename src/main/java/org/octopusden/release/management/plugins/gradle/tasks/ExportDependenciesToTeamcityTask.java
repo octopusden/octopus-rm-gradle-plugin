@@ -1,6 +1,7 @@
 package org.octopusden.release.management.plugins.gradle.tasks;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
@@ -39,7 +40,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
 
     private List<String> excludedConfigurations = Arrays.asList("sourceArtifacts", "-runtime", "runtimeElements", "runtimeOnly", "testRuntimeOnly", "testRuntime");
 
-    private boolean includeAllDependencies = Optional.ofNullable(getProject().findProperty("includeAllDependencies"))
+    private final boolean includeAllDependencies = Optional.ofNullable(getProject().findProperty("includeAllDependencies"))
             .map(v -> Boolean.parseBoolean(v.toString()))
             .orElse(false);
 
@@ -61,6 +62,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
     @TaskAction
     public void exportDependencies() {
         printProperties();
+
         final ReleaseManagementDependenciesExtension releaseManagementDependenciesExtension = (ReleaseManagementDependenciesExtension) getProject()
                 .getRootProject()
                 .getExtensions()
@@ -72,7 +74,9 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         if (releaseDependenciesConfiguration.isFromDependencies() || includeAllDependencies) {
 
             final List<String> componentsFromDependencies = getArtifactDependenciesString(releaseDependenciesConfiguration);
-            final List<String> componentsFromConfiguration = releaseDependenciesConfiguration.getComponents().stream().map(c -> String.format(COMPONENT_FORMAT, c.getName(), c.getVersion())).collect(Collectors.toList());
+            final List<String> componentsFromConfiguration = releaseDependenciesConfiguration.getComponents()
+                    .stream()
+                    .map(c -> String.format(COMPONENT_FORMAT, c.getName(), c.getVersion())).collect(Collectors.toList());
 
             dependenciesString = Stream.concat(componentsFromDependencies.stream(), componentsFromConfiguration.stream())
                     .distinct()
@@ -92,7 +96,8 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
     }
 
     private void printProperties() {
-        getLogger().info("ExportDependenciesToTeamcityTask Parameters: excludedConfigurations={}, includeAllDependencies={}, componentRegistryServiceUrl={}", excludedConfigurations, includeAllDependencies, componentsRegistryServiceUrl);
+        getLogger().info("ExportDependenciesToTeamcityTask Parameters: excludedConfigurations={}, includeAllDependencies={}, componentRegistryServiceUrl={}",
+                excludedConfigurations, includeAllDependencies, componentsRegistryServiceUrl);
     }
 
     @NotNull
@@ -162,6 +167,8 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         final Configuration copiedConfiguration = configuration.copyRecursive();
         copiedConfiguration.setCanBeConsumed(true);
         copiedConfiguration.setCanBeResolved(true);
+        copiedConfiguration.setTransitive(false);
+        getLogger().info("ExportDependenciesToTeamcityTask Configuration '{}' dependencies", configuration.getName());
 
         final List<ModuleComponentIdentifier> dependencies = copiedConfiguration.getIncoming()
                 .getResolutionResult()
@@ -237,4 +244,5 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
             return passed;
         };
     }
+
 }
