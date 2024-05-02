@@ -1,6 +1,7 @@
 package org.octopusden.release.management.plugins.gradle.tasks;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
@@ -67,7 +68,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         printProperties();
 
         if (includeTransitive && !includeAllDependencies) {
-            throw new IllegalStateException("The option includeTransitive can be used only if the option includeAllDependencies is set to true");
+            throw new GradleException("The option includeTransitive can be used only if the option includeAllDependencies is set to true");
         }
 
         final ReleaseManagementDependenciesExtension releaseManagementDependenciesExtension = (ReleaseManagementDependenciesExtension) getProject()
@@ -78,7 +79,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         final ReleaseDependenciesConfiguration releaseDependenciesConfiguration = (ReleaseDependenciesConfiguration) releaseManagementDependenciesExtension.getReleaseDependenciesConfiguration();
 
         final String dependenciesString;
-        if (releaseDependenciesConfiguration.isFromDependencies() || includeAllDependencies ) {
+        if (releaseDependenciesConfiguration.isFromDependencies() || includeAllDependencies) {
 
             final List<String> componentsFromDependencies = getArtifactDependenciesString(releaseDependenciesConfiguration);
             final List<String> componentsFromConfiguration = releaseDependenciesConfiguration.getComponents()
@@ -162,7 +163,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         final List<Predicate<ModuleComponentIdentifier>> filters = new ArrayList<>();
         filters.add(supportedGroupIdsPredicate);
         filters.add(excludePredicate);
-        if (! includeAllDependencies) {
+        if (!includeAllDependencies) {
             filters.add(includePredicate);
         }
         return filters;
