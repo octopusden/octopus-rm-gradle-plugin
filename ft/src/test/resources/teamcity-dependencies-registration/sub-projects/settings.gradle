@@ -1,0 +1,12 @@
+
+pluginManagement {
+    plugins {
+        id 'org.octopusden.octopus-release-management' version settings['octopus-release-management.version']
+    }
+}
+
+rootProject.name = 'subprojects-dependencies-registration'
+
+include ':project1'
+include ':project2'
+include ':project3'

@@ -1,7 +1,6 @@
 package org.octopusden.release.management.plugins.gradle.tasks;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
@@ -63,10 +62,10 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
     public void exportDependencies() {
         printProperties();
 
-        final ReleaseManagementDependenciesExtension releaseManagementDependenciesExtension = (ReleaseManagementDependenciesExtension) getProject()
-                .getRootProject()
+        final ReleaseManagementDependenciesExtension releaseManagementDependenciesExtension = getProject()
+                .getProject()
                 .getExtensions()
-                .findByName("releaseManagement");
+                .getByType(ReleaseManagementDependenciesExtension.class);
 
         final ReleaseDependenciesConfiguration releaseDependenciesConfiguration = (ReleaseDependenciesConfiguration) releaseManagementDependenciesExtension.getReleaseDependenciesConfiguration();
 
@@ -197,7 +196,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
     }
 
     private Collection<Configuration> getConfigurations() {
-        return getProject().getRootProject().getAllprojects().stream().flatMap(subProject ->
+        return getProject().getAllprojects().stream().flatMap(subProject ->
                 subProject.getConfigurations()
                         .stream()
                         .filter(configuration -> !excludedConfigurations.contains(configuration.getName()))

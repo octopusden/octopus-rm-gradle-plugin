@@ -1,0 +1,9 @@
+
+plugins {
+    id 'org.octopusden.octopus-release-management'
+}
+
+allprojects {
+    group = 'org.octopusden.rm.ft'
+}
+

@@ -1,0 +1,28 @@
+plugins {
+    id 'java-library'
+    id 'org.octopusden.octopus-release-management'
+}
+
+releaseManagement {
+    releaseDependencies {
+        component name : "ComponentOne",  version: "3.2.1"
+        component name : "ComponentThree",  version: "7.8.9"
+    }
+}
+
+apply plugin: 'maven-publish'
+apply plugin: 'java-library'
+
+
+java {
+        withJavadocJar()
+        withSourcesJar()
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}
