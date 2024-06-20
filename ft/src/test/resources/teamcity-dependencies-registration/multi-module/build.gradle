@@ -1,10 +1,11 @@
-//
+
 plugins {
     id 'org.octopusden.octopus-release-management'
 }
 
 allprojects {
     group = 'org.octopusden.dbsm.cloud'
+    apply plugin: "org.octopusden.octopus-release-management"
 }
 
 releaseManagement {
