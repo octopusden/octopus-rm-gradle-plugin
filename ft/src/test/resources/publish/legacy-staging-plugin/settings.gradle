@@ -8,7 +8,7 @@ pluginManagement {
                 username = NEXUS_USER
                 password = NEXUS_PASSWORD
             }
-            def au = System.getProperty('artifactory.url') + '/artifactory/rnd-maven-dev-virtual'
+            def au = System.getenv('ARTIFACTORY_URL') + '/artifactory/rnd-maven-dev-virtual'
             println("*********************************************************************")
             println("Using Artifactory URL: " + au)
             println("*********************************************************************")

@@ -97,7 +97,6 @@ class ReleaseManagementPluginTest {
             .replace("__BUILD_VERSION__", buildVersion)
             .replace("__COMPONENT_NAME__", componentName)
             .replace("__PACKAGE_NAME__", System.getProperty("packageName"))
-            .replace("__ARTIFACTORY_URL__", System.getProperty("artifactory.url"))
             .split(Regex("\\s+"))
         val processBuilder: LocalProcessBuilder = ProcessBuilders.newProcessBuilder(LocalProcessSpec.LOCAL_COMMAND)
         val processInstance = processBuilder
