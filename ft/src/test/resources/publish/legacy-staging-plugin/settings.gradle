@@ -1,9 +1,24 @@
 //
 
 pluginManagement {
+    repositories {
+        mavenLocal()
+        maven {
+            credentials {
+                username = NEXUS_USER
+                password = NEXUS_PASSWORD
+            }
+            url 'https://artifactory.openwaygroup.com/artifactory/rnd-maven-dev-virtual'
+            if (org.gradle.util.GradleVersion.current() >= org.gradle.util.GradleVersion.version('6.0')) {
+                metadataSources {
+                    mavenPom()
+                    artifact()
+                }
+            }
+        }
+    }
     plugins {
-//        id 'org.octopusden.octopus-release-management' version settings['octopus-release-management.version']
-        id 'org.octopusden.octopus-release-management' version '2.0.26'
+        id 'org.octopusden.octopus-release-management' version settings['octopus-release-management.version']
     }
 }
 
