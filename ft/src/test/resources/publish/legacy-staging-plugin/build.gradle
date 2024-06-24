@@ -5,11 +5,12 @@ buildscript {
     ext.escrowBuild = m2localPath != null
     repositories {
         if (escrowBuild) {
-            println("Escrow mode detected - using local maven repository: $m2localPath")
+            println("** Escrow mode detected - using local maven repository: $m2localPath")
             maven {
                 url m2localPath
             }
         } else {
+            println("** Escrow mode not detected  - using standard maven local repository")
             mavenLocal()
         }
     }
