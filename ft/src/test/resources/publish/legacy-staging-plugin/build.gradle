@@ -5,6 +5,7 @@ buildscript {
     ext.escrowBuild = m2localPath != null
     repositories {
         if (escrowBuild) {
+            println("Escrow mode detected - using local maven repository: $m2localPath")
             maven {
                 url m2localPath
             }
@@ -62,13 +63,11 @@ configure(subprojects.findAll { !(it.name in subprojectsWithoutSources) }) {
     //
     apply plugin: 'maven-publish'
 
-//    if (project.hasProperty("gradleStagingPluginVersion")) {
-//        apply plugin: 'gradle-staging-plugin'
-        nexusStaging {
-            profileId = projectParameter('stagingProfileId')
-            repositoryId = projectParameter('stagingRepositoryId')
-        }
-//    }
+    nexusStaging {
+        profileId = projectParameter('stagingProfileId')
+        repositoryId = projectParameter('stagingRepositoryId')
+    }
+
     publishing {
         publications {
             mavenJava(MavenPublication) {
