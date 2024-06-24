@@ -93,11 +93,12 @@ class ReleaseManagementPluginTest {
             gradleCommandAndLineProperties.load(it)
         }
         val gradleCommandAdnArguments = gradleCommandAndLineProperties.getProperty("command-and-arguments")
-                .replace("__RELEASE_MANAGEMENT_VERSION__", releaseManagementVersion)
-                .replace("__BUILD_VERSION__", buildVersion)
-                .replace("__COMPONENT_NAME__", componentName)
-                .replace("__PACKAGE_NAME__", System.getProperty("packageName"))
-                .split(Regex("\\s+"))
+            .replace("__RELEASE_MANAGEMENT_VERSION__", releaseManagementVersion)
+            .replace("__BUILD_VERSION__", buildVersion)
+            .replace("__COMPONENT_NAME__", componentName)
+            .replace("__PACKAGE_NAME__", System.getProperty("packageName"))
+            .replace("__ARTIFACTORY_URL__", System.getProperty("artifactory.url"))
+            .split(Regex("\\s+"))
         val processBuilder: LocalProcessBuilder = ProcessBuilders.newProcessBuilder(LocalProcessSpec.LOCAL_COMMAND)
         val processInstance = processBuilder
                 .envVariables(mapOf("JAVA_HOME" to System.getProperty("java.home")))
