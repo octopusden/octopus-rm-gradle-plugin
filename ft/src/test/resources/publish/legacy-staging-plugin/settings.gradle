@@ -8,10 +8,8 @@ pluginManagement {
                 username = NEXUS_USER
                 password = NEXUS_PASSWORD
             }
+
             def au = System.getenv('ARTIFACTORY_URL') + '/artifactory/rnd-maven-dev-virtual'
-            println("*********************************************************************")
-            println("Using Artifactory URL: " + au)
-            println("*********************************************************************")
             url au
 
             if (org.gradle.util.GradleVersion.current() >= org.gradle.util.GradleVersion.version('6.0')) {
