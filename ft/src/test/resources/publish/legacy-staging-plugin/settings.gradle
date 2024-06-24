@@ -1,4 +1,12 @@
 //
+
+pluginManagement {
+    plugins {
+        id 'org.octopusden.octopus-release-management' version settings['octopus-release-management.version']
+    }
+}
+
+
 rootProject.name="deployer-dsl"
 
 include ':deployer-dsl-core'
