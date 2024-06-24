@@ -8,7 +8,7 @@ pluginManagement {
                 username = NEXUS_USER
                 password = NEXUS_PASSWORD
             }
-            url 'https://artifactory.openwaygroup.com/artifactory/rnd-maven-dev-virtual'
+            url System.getProperty('artifactory.url') + '/artifactory/rnd-maven-dev-virtual'
             if (org.gradle.util.GradleVersion.current() >= org.gradle.util.GradleVersion.version('6.0')) {
                 metadataSources {
                     mavenPom()
