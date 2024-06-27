@@ -1,9 +1,3 @@
-/*
-*/
-
-version = hasProperty("SM_DSL_VERSION") ? SM_DSL_VERSION : hasProperty("buildVersion") ? buildVersion : "1.0-SNAPSHOT"
-
-description "Deployer DSL $version"
 
 buildscript {
     /* Escrow build support */
@@ -11,19 +5,24 @@ buildscript {
     ext.escrowBuild = m2localPath != null
     repositories {
         if (escrowBuild) {
+            println("** Escrow mode detected - using local maven repository: $m2localPath")
             maven {
                 url m2localPath
             }
         } else {
+            println("** Escrow mode not detected  - using standard maven local repository")
             mavenLocal()
         }
     }
-    dependencies {
-        if (project.hasProperty("gradleStagingPluginVersion")) {
-            classpath group: 'org.octopusden.octopus-gradle-plugin', name: 'gradle-staging-plugin', version: gradleStagingPluginVersion
-        }
-    }
 }
+
+plugins {
+    id 'org.octopusden.octopus-release-management'
+}
+
+version = hasProperty("SM_DSL_VERSION") ? SM_DSL_VERSION : hasProperty("buildVersion") ? buildVersion : "1.0-SNAPSHOT"
+
+description "Deployer DSL $version"
 
 allprojects {
     group = 'org.octopusden.octopus-release-management.ft'
@@ -65,13 +64,11 @@ configure(subprojects.findAll { !(it.name in subprojectsWithoutSources) }) {
     //
     apply plugin: 'maven-publish'
 
-    if (project.hasProperty("gradleStagingPluginVersion")) {
-        apply plugin: 'gradle-staging-plugin'
-        nexusStaging {
-            profileId = projectParameter('stagingProfileId')
-            repositoryId = projectParameter('stagingRepositoryId')
-        }
+    nexusStaging {
+        profileId = projectParameter('stagingProfileId')
+        repositoryId = projectParameter('stagingRepositoryId')
     }
+
     publishing {
         publications {
             mavenJava(MavenPublication) {

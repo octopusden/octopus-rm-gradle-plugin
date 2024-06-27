@@ -31,6 +31,19 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
 
     @Override
     void apply(Project project) {
+
+        LOGGER.info("Appling release management plugin to the project $project")
+
+        if (project.getTasksByName("exportDependenciesToTeamcity", false).empty) {
+            project.task("exportDependenciesToTeamcity", type: ExportDependenciesToTeamcityTask)
+        }
+
+
+        if (!project.extensions.findByName("releaseManagement")) {
+            project.extensions.create("releaseManagement", ReleaseManagementDependenciesExtension)
+        }
+
+
         if (project.rootProject.hasProperty(PLUGIN_STATE_PROPERTY)) {
             LOGGER.trace("The project $project has been already configured to use release management plugin")
             return
@@ -62,10 +75,6 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
             project.rootProject.task("dumpAutoUpdateDependencies", type: AutoUpdateDependenciesDumpTask)
         }
 
-        if (!project.rootProject.extensions.findByName("releaseManagement")) {
-            project.rootProject.extensions.create("releaseManagement", ReleaseManagementDependenciesExtension)
-            project.rootProject.task("exportDependenciesToTeamcity", type: ExportDependenciesToTeamcityTask)
-        }
         project.rootProject.extensions.extraProperties.m2localPath = project.rootProject.hasProperty('m2_local') ? new File(project.rootProject['m2_local'] as String).toURI().toURL().toString().replaceAll(/^file:\//, 'file:///') : null
         project.rootProject.extensions.extraProperties.escrowBuild = project.rootProject.extensions.extraProperties.m2localPath != null
 
@@ -151,11 +160,13 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
                 }
             }
 
-            if (!rootProject.gradle.startParameter.offline && !project.rootProject.extensions.extraProperties.escrowBuild) {
-                def releaseManagementDependenciesExtension = project.rootProject.extensions.getByType(ReleaseManagementDependenciesExtension.class)
+            def exportDependenciesToTeamcitySpecified = project.gradle.startParameter.taskNames.any { it.endsWith("exportDependenciesToTeamcity") }
+
+            if (!exportDependenciesToTeamcitySpecified && !rootProject.gradle.startParameter.offline && !project.rootProject.extensions.extraProperties.escrowBuild) {
+                def releaseManagementDependenciesExtension = project.extensions.getByType(ReleaseManagementDependenciesExtension.class)
                 if (releaseManagementDependenciesExtension.releaseDependenciesConfiguration.isTouched() || rootProject.findProperty("includeAllDependencies")?.toString()?.equalsIgnoreCase("true")) {
                     if (releaseManagementDependenciesExtension.releaseDependenciesConfiguration.autoRegistration || rootProject.hasProperty("buildVersion")) {
-                        def exportDependenciesToTeamcityTask = rootProject.getTasksByName("exportDependenciesToTeamcity", false)[0] as ExportDependenciesToTeamcityTask
+                        def exportDependenciesToTeamcityTask = project.getTasksByName("exportDependenciesToTeamcity", false)[0] as ExportDependenciesToTeamcityTask
                         rootProject.gradle.buildFinished { BuildResult buildResult ->
                             if (buildResult.failure == null) {
                                 exportDependenciesToTeamcityTask.exportDependencies()

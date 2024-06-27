@@ -46,14 +46,37 @@ class ReleaseManagementPluginTest {
             Arguments.of("transitive-dependencies", "teamcity-gradle-template-command.properties", emptyList<String>()),
 
             // indirect "DBSM-Cloud-API:0.1.55" must not be included!
-            Arguments.of("transitive-dependencies", "teamcity-gradle-template-command-include-all-deps.properties", listOf("DBSM-Cloud-Common:0.1.54"))
+            Arguments.of("transitive-dependencies", "teamcity-gradle-template-command-include-all-deps.properties", listOf("DBSM-Cloud-Common:0.1.54")),
+
+            Arguments.of("multi-module", "template-all-deps-subproj_api.properties", listOf("DBSM-Cloud-API:0.1.71")),
+            Arguments.of(
+                "multi-module",
+                "template-all-deps-subproj_core.properties",
+                listOf("DBSM-Cloud-Common:0.1.67", "components-registry-service:0.0.645")
+            ),
+            Arguments.of(
+                "multi-module",
+                "template-all-deps-root_prj.properties",
+                listOf("DBSM-Cloud-API:0.1.71", "DBSM-Cloud-Common:0.1.67", "components-registry-service:0.0.645")
             )
+        )
+
+        @JvmStatic
+        fun subprojectDeclaredData(): Stream<Arguments> = Stream.of(
+            Arguments.of(
+                "sub-projects",
+                "template-deps-subproj2.properties",
+                listOf("ComponentOne:3.2.1", "ComponentThree:7.8.9")
+            )
+        )
 
         @JvmStatic
         fun versionSpecificationData(): Stream<Arguments> =  Stream.of(
                 Arguments.of("1.0-SNAPSHOT", listOf("--no-daemon", "assemble")),
                 Arguments.of("0.1", listOf("--no-daemon", "assemble", "-PbuildVersion=0.1"))
         )
+
+
     }
 
     @ParameterizedTest
@@ -70,11 +93,11 @@ class ReleaseManagementPluginTest {
             gradleCommandAndLineProperties.load(it)
         }
         val gradleCommandAdnArguments = gradleCommandAndLineProperties.getProperty("command-and-arguments")
-                .replace("__RELEASE_MANAGEMENT_VERSION__", releaseManagementVersion)
-                .replace("__BUILD_VERSION__", buildVersion)
-                .replace("__COMPONENT_NAME__", componentName)
-                .replace("__PACKAGE_NAME__", System.getProperty("packageName"))
-                .split(Regex("\\s+"))
+            .replace("__RELEASE_MANAGEMENT_VERSION__", releaseManagementVersion)
+            .replace("__BUILD_VERSION__", buildVersion)
+            .replace("__COMPONENT_NAME__", componentName)
+            .replace("__PACKAGE_NAME__", System.getProperty("packageName"))
+            .split(Regex("\\s+"))
         val processBuilder: LocalProcessBuilder = ProcessBuilders.newProcessBuilder(LocalProcessSpec.LOCAL_COMMAND)
         val processInstance = processBuilder
                 .envVariables(mapOf("JAVA_HOME" to System.getProperty("java.home")))
@@ -105,7 +128,17 @@ class ReleaseManagementPluginTest {
 
     @ParameterizedTest
     @MethodSource("dependedComponentsRegistrationData")
-    fun testDependedComponentsRegistration(
+    fun testDependedComponentsRegistration(project: String, commandPropFile: String, expected: Collection<String>) {
+        teamcityRependenciesRegistrationTest(project, commandPropFile, expected)
+    }
+
+    @ParameterizedTest
+    @MethodSource("subprojectDeclaredData")
+    fun testSubprojectDeclared(project: String, commandPropFile: String, expected: Collection<String>) {
+        teamcityRependenciesRegistrationTest(project, commandPropFile, expected)
+    }
+
+    fun teamcityRependenciesRegistrationTest(
         project: String,
         gradleCommandPropFile: String,
         expectedComponents: Collection<String>
@@ -151,6 +184,9 @@ class ReleaseManagementPluginTest {
                 ?: emptyList()
         assertThat(dependencies).containsExactlyInAnyOrderElementsOf(expectedComponents)
     }
+
+
+
 
     @Test
     fun testDeclareDependencies() {

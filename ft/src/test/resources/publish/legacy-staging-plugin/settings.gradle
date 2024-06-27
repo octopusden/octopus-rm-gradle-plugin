@@ -1,4 +1,31 @@
 //
+
+pluginManagement {
+    repositories {
+        mavenLocal()
+        maven {
+            credentials {
+                username = NEXUS_USER
+                password = NEXUS_PASSWORD
+            }
+
+            def au = System.getenv('ARTIFACTORY_URL') + '/artifactory/rnd-maven-dev-virtual'
+            url au
+
+            if (org.gradle.util.GradleVersion.current() >= org.gradle.util.GradleVersion.version('6.0')) {
+                metadataSources {
+                    mavenPom()
+                    artifact()
+                }
+            }
+        }
+    }
+    plugins {
+        id 'org.octopusden.octopus-release-management' version settings['octopus-release-management.version']
+    }
+}
+
+
 rootProject.name="deployer-dsl"
 
 include ':deployer-dsl-core'
