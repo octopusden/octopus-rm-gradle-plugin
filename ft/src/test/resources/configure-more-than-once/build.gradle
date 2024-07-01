@@ -1,0 +1,11 @@
+buildscript {
+    dependencies {
+        classpath group: "org.octopusden.octopus-release-management",
+                name: "org.octopusden.octopus-release-management",
+                version: project.findProperty('octopus-release-management.version') ?: "1.0-SNAPSHOT"
+    }
+}
+
+subprojects {
+    apply plugin: "org.octopusden.octopus-release-management"
+}

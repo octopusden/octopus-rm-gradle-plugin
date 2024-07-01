@@ -1,0 +1,12 @@
+pluginManagement {
+  plugins {
+    id 'org.octopusden.octopus-release-management' version settings['octopus-release-management.version']
+  }
+}
+
+rootProject.name = "qr-service"
+
+include "qr-gateway-model"
+include "qr-api-model"
+include "qr-code"
+

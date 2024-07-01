@@ -86,24 +86,28 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
         }
 
         project.rootProject.allprojects {Project subProject ->
-            subProject.afterEvaluate {Project projectToConfigure ->
-                def bootBuildImage = projectToConfigure.tasks.findByName("bootBuildImage")
-                if (bootBuildImage?.class?.toString()?.contains("org.springframework.boot.gradle.tasks.bundling.BootBuildImage")) {
-                    projectToConfigure.logger.lifecycle("Configure bootBuildImage task")
-                    // Spring Boot plugin supports docker since 2.4.0
-                    if (bootBuildImage.class.methods.any {method -> method.name == "docker" }) {
-                        bootBuildImage.docker {
-                            builderRegistry {
-                                username = projectToConfigure.rootProject.findProperty(ARTIFACTORY_DOCKER_USERNAME_PROPERTY) ?: System.getenv().getOrDefault(ARTIFACTORY_DOCKER_USERNAME_PROPERTY, project.rootProject.findProperty('NEXUS_USER') as String)
-                                password = projectToConfigure.rootProject.findProperty(ARTIFACTORY_DOCKER_PASSWORD_PROPERTY) ?: System.getenv().getOrDefault(ARTIFACTORY_DOCKER_PASSWORD_PROPERTY, project.rootProject.findProperty('NEXUS_PASSWORD') as String)
-                                def dockerRegistry = System.getenv('DOCKER_REGISTRY') ?: project.properties['docker.registry']
-                                if (dockerRegistry != null) {
-                                    url = dockerRegistry
+            if (!subProject.state.executed) {
+                subProject.afterEvaluate { Project projectToConfigure ->
+                    def bootBuildImage = projectToConfigure.tasks.findByName("bootBuildImage")
+                    if (bootBuildImage?.class?.toString()?.contains("org.springframework.boot.gradle.tasks.bundling.BootBuildImage")) {
+                        projectToConfigure.logger.lifecycle("Configure bootBuildImage task")
+                        // Spring Boot plugin supports docker since 2.4.0
+                        if (bootBuildImage.class.methods.any { method -> method.name == "docker" }) {
+                            bootBuildImage.docker {
+                                builderRegistry {
+                                    username = projectToConfigure.rootProject.findProperty(ARTIFACTORY_DOCKER_USERNAME_PROPERTY) ?: System.getenv().getOrDefault(ARTIFACTORY_DOCKER_USERNAME_PROPERTY, project.rootProject.findProperty('NEXUS_USER') as String)
+                                    password = projectToConfigure.rootProject.findProperty(ARTIFACTORY_DOCKER_PASSWORD_PROPERTY) ?: System.getenv().getOrDefault(ARTIFACTORY_DOCKER_PASSWORD_PROPERTY, project.rootProject.findProperty('NEXUS_PASSWORD') as String)
+                                    def dockerRegistry = System.getenv('DOCKER_REGISTRY') ?: project.properties['docker.registry']
+                                    if (dockerRegistry != null) {
+                                        url = dockerRegistry
+                                    }
                                 }
                             }
                         }
                     }
                 }
+            } else {
+                LOGGER.debug("Attempt to configure project {} more than once.", subProject.name);
             }
         }
 
@@ -219,8 +223,12 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
             project.rootProject.afterEvaluate { configureProjectPublish(project.rootProject) }
 
             project.rootProject.subprojects { Project subProject ->
-                subProject.pluginManager.apply('com.jfrog.artifactory')
-                subProject.afterEvaluate { configureProjectPublish(subProject) }
+                if (!subProject.state.executed) {
+                    subProject.pluginManager.apply('com.jfrog.artifactory')
+                    subProject.afterEvaluate { configureProjectPublish(subProject) }
+                } else {
+                    LOGGER.debug("Attempt to configure project {} more than once.", subProject.name);
+                }
             }
         }
 
