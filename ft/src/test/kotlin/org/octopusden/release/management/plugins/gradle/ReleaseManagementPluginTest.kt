@@ -334,6 +334,8 @@ class ReleaseManagementPluginTest {
             .execute(
                 "-Poctopus-release-management.version=$releaseManagementVersion",
                 "-PbuildVersion=$buildVersion",
+                "--stacktrace",
+                "--info",
                 "assemble"
             )
             .toCompletableFuture()
