@@ -336,7 +336,7 @@ class ReleaseManagementPluginTest {
                 "-PbuildVersion=$buildVersion",
                 "--stacktrace",
                 "--info",
-                "assemble"
+                "tasks"
             )
             .toCompletableFuture()
             .get()
