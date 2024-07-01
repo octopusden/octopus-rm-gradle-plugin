@@ -107,7 +107,7 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
                     }
                 }
             } else {
-                LOGGER.debug("Attempt to configure project {} more than once.", subProject);
+                LOGGER.debug("Attempt to configure project {} more than once.", subProject.name);
             }
         }
 
@@ -223,8 +223,12 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
             project.rootProject.afterEvaluate { configureProjectPublish(project.rootProject) }
 
             project.rootProject.subprojects { Project subProject ->
-                subProject.pluginManager.apply('com.jfrog.artifactory')
-                subProject.afterEvaluate { configureProjectPublish(subProject) }
+                if (!subProject.state.executed) {
+                    subProject.pluginManager.apply('com.jfrog.artifactory')
+                    subProject.afterEvaluate { configureProjectPublish(subProject) }
+                } else {
+                    LOGGER.debug("Attempt to configure project {} more than once.", subProject.name);
+                }
             }
         }
 
