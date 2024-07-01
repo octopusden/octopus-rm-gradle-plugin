@@ -107,8 +107,7 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
                     }
                 }
             } else {
-                LOGGER.warn("Attempt to configure project {} more than once. " +
-                        "Please check the Gradle build script, as it might be incorrect. ", subProject);
+                LOGGER.debug("Attempt to configure project {} more than once.", subProject);
             }
         }
 
