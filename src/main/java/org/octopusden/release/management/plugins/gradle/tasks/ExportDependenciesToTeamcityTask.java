@@ -1,5 +1,18 @@
 package org.octopusden.release.management.plugins.gradle.tasks;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.function.Function;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -17,19 +30,6 @@ import org.octopusden.release.management.plugins.gradle.ReleaseManagementDepende
 import org.octopusden.release.management.plugins.gradle.dto.ComponentArtifact;
 import org.octopusden.release.management.plugins.gradle.dto.Module;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
 public class ExportDependenciesToTeamcityTask extends DefaultTask {
 
     private static final String COMPONENT_FORMAT = "%s:%s";
@@ -37,7 +37,8 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
 
     private final String componentsRegistryServiceUrl = System.getenv(COMPONENT_REGISTRY_SERVICE_URL_PROPERTY);
 
-    private List<String> excludedConfigurations = Arrays.asList("sourceArtifacts", "-runtime", "runtimeElements", "runtimeOnly", "testRuntimeOnly", "testRuntime");
+    private List<String> excludedConfigurations = Collections.emptyList();
+    private List<String> includedConfigurations = Arrays.asList("runtimeElements", "runtimeClasspath");
 
     private final boolean includeAllDependencies = Optional.ofNullable(getProject().findProperty("includeAllDependencies"))
             .map(v -> Boolean.parseBoolean(v.toString()))
@@ -56,6 +57,16 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
 
     public void setExcludedConfigurations(List<String> excludedConfigurations) {
         this.excludedConfigurations = excludedConfigurations;
+    }
+
+    @Input
+    @org.gradle.api.tasks.Optional
+    public List<String> getIncludedConfigurations() {
+        return includedConfigurations;
+    }
+
+    public void setIncludedConfigurations(List<String> includedConfigurations) {
+        this.includedConfigurations = includedConfigurations;
     }
 
     @TaskAction
@@ -161,13 +172,12 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
     }
 
     private Collection<ComponentArtifact> extractConfigurationDependencies(Configuration configuration, Collection<Predicate<ModuleComponentIdentifier>> filters) {
-        getLogger().debug("ExportDependenciesToTeamcityTask Configuration '{}' dependencies", configuration.getName());
+        getLogger().info("Extract Configuration Dependencies for '{}'", configuration.getName());
 
         final Configuration copiedConfiguration = configuration.copyRecursive();
         copiedConfiguration.setCanBeConsumed(true);
         copiedConfiguration.setCanBeResolved(true);
         copiedConfiguration.setTransitive(false);
-        getLogger().info("ExportDependenciesToTeamcityTask Configuration '{}' dependencies", configuration.getName());
 
         final List<ModuleComponentIdentifier> dependencies = copiedConfiguration.getIncoming()
                 .getResolutionResult()
@@ -176,8 +186,6 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
                 .filter(dependencyResult -> dependencyResult instanceof ResolvedDependencyResult && ((ResolvedDependencyResult) dependencyResult).getSelected().getId() instanceof ModuleComponentIdentifier)
                 .map(moduleComponentIdentifier -> (ModuleComponentIdentifier) ((ResolvedDependencyResult) moduleComponentIdentifier).getSelected().getId())
                 .collect(Collectors.toList());
-
-        getLogger().info("ExportDependenciesToTeamcityTask Configuration '{}', dependencies candidates: {}", configuration.getName(), this.getTaskDependencies());
 
         return dependencies.stream()
                 .filter(componentIdentifier -> {
@@ -200,6 +208,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
                 subProject.getConfigurations()
                         .stream()
                         .filter(configuration -> !excludedConfigurations.contains(configuration.getName()))
+                        .filter(configuration -> includedConfigurations.isEmpty() || includedConfigurations.contains(configuration.getName()))
         ).collect(Collectors.toList());
     }
 
