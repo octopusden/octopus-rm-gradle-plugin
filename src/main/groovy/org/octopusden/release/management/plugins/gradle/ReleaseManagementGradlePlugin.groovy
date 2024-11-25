@@ -260,7 +260,7 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
 
     private void configJfrogForSubprj(Project project) {
         project.pluginManager.apply('com.jfrog.artifactory')
-        project.afterEvaluate { configureProjectPublish(project) }
+        configureProjectPublish(project)
     }
 
     private void configureProjectPublish(final Project project) {
