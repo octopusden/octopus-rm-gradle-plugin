@@ -292,6 +292,10 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
             if (project.pluginManager.findPlugin('maven-publish')) {
                 LOGGER.info("== Configure maven-publish for {}", project)
                 project.tasks.findByPath("publish")?.dependsOn(project.tasks.findByPath("artifactoryPublish"))
+
+                LOGGER.info("  == task publish {}", project.tasks.findByPath("publish") )
+                LOGGER.info("  == task artifactoryPublish {}", project.tasks.findByPath("artifactoryPublish") )
+
                 project.tasks.withType(PublishToMavenRepository.class)?.forEach {
                     it.enabled = false
                     LOGGER.info("== Disable publish task {}", it)
