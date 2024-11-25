@@ -43,6 +43,7 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
             project.extensions.create("releaseManagement", ReleaseManagementDependenciesExtension)
         }
 
+        configJfrogForSubprj(project)
 
         if (project.rootProject.hasProperty(PLUGIN_STATE_PROPERTY)) {
             LOGGER.trace("The project $project has been already configured to use release management plugin")
@@ -221,10 +222,6 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
                 }
             }
             project.rootProject.afterEvaluate { configureProjectPublish(project.rootProject) }
-
-            project.rootProject.subprojects { Project subProject ->
-                configJfrogForSubprj(subProject)
-            }
         }
 
         if (project.getRootProject().getGradle().getStartParameter().isDryRun() && "ASSEMBLE" == project.getRootProject().findProperty(ESCROW_PULL_IMAGES_PARAMETER_NAME)) {
