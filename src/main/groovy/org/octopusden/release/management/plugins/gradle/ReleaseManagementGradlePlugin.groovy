@@ -223,12 +223,7 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
             project.rootProject.afterEvaluate { configureProjectPublish(project.rootProject) }
 
             project.rootProject.subprojects { Project subProject ->
-                //if (!subProject.state.executed) {
-                    subProject.pluginManager.apply('com.jfrog.artifactory')
-                    subProject.afterEvaluate { configureProjectPublish(subProject) }
-                //} else {
-                //    LOGGER.debug("Attempt to configure project {} more than once.", subProject.name);
-                //}
+                configJfrogForSubprj(subProject)
             }
         }
 
@@ -264,6 +259,13 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
 
         project.pluginManager.apply("com.platformlib.gradle-wrapper")
         project.rootProject.extensions[PLUGIN_STATE_PROPERTY] = "applied"
+    }
+
+    private void configJfrogForSubprj(Project project) {
+        project.afterEvaluate{
+            project.pluginManager.apply('com.jfrog.artifactory')
+            project.afterEvaluate { configureProjectPublish(project) }
+        }
     }
 
     private void configureProjectPublish(final Project project) {
