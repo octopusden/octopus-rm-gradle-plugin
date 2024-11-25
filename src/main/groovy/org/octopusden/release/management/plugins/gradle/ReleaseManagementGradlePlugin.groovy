@@ -259,10 +259,8 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
     }
 
     private void configJfrogForSubprj(Project project) {
-        project.afterEvaluate{
-            project.pluginManager.apply('com.jfrog.artifactory')
-            project.afterEvaluate { configureProjectPublish(project) }
-        }
+        project.pluginManager.apply('com.jfrog.artifactory')
+        project.afterEvaluate { configureProjectPublish(project) }
     }
 
     private void configureProjectPublish(final Project project) {
