@@ -267,7 +267,9 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
     }
 
     private void configureProjectPublish(final Project project) {
+        LOGGER.info("== Configure project publish for {}", project)
         if (project.rootProject.extensions.extraProperties.escrowBuild) {
+            LOGGER.info("== Configure escrow repository for {} publish tasks", project)
             if (project.pluginManager.findPlugin('maven-publish')) {
                 project.plugins.withType(MavenPublishPlugin.class) {
                     if (project.publishing.repositories.empty) {
@@ -283,17 +285,25 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
                 }
             }
         } else if (!project.rootProject.gradle.startParameter.offline && project.pluginManager.findPlugin('com.jfrog.artifactory')) {
+            LOGGER.info("== Configure artifactoryPublish for {}", project)
             if (project == project.rootProject && !project.rootProject.pluginManager.findPlugin('maven-publish')) {
                 project.rootProject.pluginManager.apply('maven-publish')
             }
             if (project.pluginManager.findPlugin('maven-publish')) {
+                LOGGER.info("== Configure maven-publish for {}", project)
                 project.tasks.findByPath("publish")?.dependsOn(project.tasks.findByPath("artifactoryPublish"))
                 project.tasks.withType(PublishToMavenRepository.class)?.forEach {
                     it.enabled = false
+                    LOGGER.info("== Disable publish task {}", it)
                 }
             } else {
+                LOGGER.info("== The project {} does not have maven-publish plugin, skip configuring artifactoryPublish", project)
                 project.tasks.findByPath("artifactoryPublish").skip = true
             }
+        } else {
+            LOGGER.info("== Is the project escrowBuild ? {} ", project.rootProject.extensions.extraProperties.escrowBuild)
+            LOGGER.info("== Is the project offline ? {} ", project.rootProject.gradle.startParameter.offline)
+            LOGGER.info("== Is the project has artifactory plugin ? {} ", project.pluginManager.findPlugin('com.jfrog.artifactory'))
         }
     }
 
