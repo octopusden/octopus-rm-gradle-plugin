@@ -265,7 +265,10 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
 
     private void configureProjectPublish(final Project project) {
         LOGGER.info("== Configure project publish for {}", project)
-        if (project.rootProject.extensions.extraProperties.escrowBuild) {
+
+        def rootExtras = project.rootProject.extensions.extraProperties
+
+        if (rootExtras.hasProperty('escrowBuild') && rootExtras.escrowBuild) {
             LOGGER.info("== Configure escrow repository for {} publish tasks", project)
             if (project.pluginManager.findPlugin('maven-publish')) {
                 project.plugins.withType(MavenPublishPlugin.class) {
