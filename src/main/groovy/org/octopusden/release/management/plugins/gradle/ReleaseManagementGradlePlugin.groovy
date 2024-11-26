@@ -28,13 +28,14 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
     private static final String PLUGIN_STATE_PROPERTY = "releaseManagementConfigurationState"
     private static final String ESCROW_PULL_IMAGES_PARAMETER_NAME = "escrow.build-phase"
     public static final String CYCLONE_DX_SKIP_PROPERTY = "cyclonedx.skip"
+    public static final String COM_JFROG_ARTIFACTORY = 'com.jfrog.artifactory'
 
     @Override
     void apply(Project project) {
 
         LOGGER.info("Appling release management plugin to the project $project")
 
-        setupArtifactoryPublish(project)
+        setupRootPublishing(project)
 
         if (project.getTasksByName("exportDependenciesToTeamcity", false).empty) {
             project.task("exportDependenciesToTeamcity", type: ExportDependenciesToTeamcityTask)
@@ -195,7 +196,7 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
         }
 
         if (!project.rootProject.extensions.extraProperties.escrowBuild && baseUrl != null) {
-            project.rootProject.pluginManager.apply('com.jfrog.artifactory')
+            project.rootProject.pluginManager.apply(COM_JFROG_ARTIFACTORY)
             def repositoryKey = ("true" == project.rootProject.findProperty("publishToReleaseRepository") ?: System.getProperty("publishToReleaseRepository", System.getenv("publishToReleaseRepository"))) ? 'rnd-maven-release-local' : 'rnd-maven-dev-local'
             LOGGER.debug("Deploy to {} repository", repositoryKey)
             final String jfrogPublishConfigs = project.rootProject.findProperty(ARTIFACTORY_PUBLISH_CONFIGS_PROPERTY) as String
@@ -259,28 +260,28 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
         project.rootProject.extensions[PLUGIN_STATE_PROPERTY] = "applied"
     }
 
-    private void setupArtifactoryPublish(Project project) {
-
+    private void setupRootPublishing(Project project) {
         if (!project.rootProject.hasProperty('setupArtifactoryPublish')) {
-            LOGGER.info("== Setup Artifactory publish for the project $project")
-            project.rootProject.pluginManager.apply('com.jfrog.artifactory')
-            project.rootProject.afterEvaluate { configureProjectPublish(project.rootProject) }
+            LOGGER.debug("Setup Artifactory publish for the project $project")
             project.rootProject.ext.setupArtifactoryPublish = true
-
+            setupProjectPublishingCall(project.rootProject)
             project.rootProject.subprojects { Project subProject ->
-                subProject.pluginManager.apply('com.jfrog.artifactory')
-                if (!subProject.state.executed) {
-                    subProject.afterEvaluate { configureProjectPublish(subProject) }
-                } else {
-                    configureProjectPublish(subProject)
-                }
+                setupProjectPublishingCall(subProject)
             }
         }
-
     }
 
-    private void configureProjectPublish(final Project project) {
-        LOGGER.info("== Configure project publish for {}", project)
+    private void setupProjectPublishingCall(Project subProject) {
+        subProject.pluginManager.apply(COM_JFROG_ARTIFACTORY)
+        if (!subProject.state.executed) {
+            subProject.afterEvaluate { setupProjectPublishing(subProject) }
+        } else {
+            setupProjectPublishing(subProject)
+        }
+    }
+
+    private void setupProjectPublishing(final Project project) {
+        LOGGER.debug("Configure project publish for {}", project)
 
         def rootExtras = project.rootProject.extensions.extraProperties
         if (rootExtras.hasProperty('escrowBuild') && rootExtras.escrowBuild) {
@@ -298,7 +299,7 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
                     it.repository.url = project.rootProject.extensions.extraProperties.m2localPath
                 }
             }
-        } else if (!project.rootProject.gradle.startParameter.offline && project.pluginManager.findPlugin('com.jfrog.artifactory')) {
+        } else if (!project.rootProject.gradle.startParameter.offline && project.pluginManager.findPlugin(COM_JFROG_ARTIFACTORY)) {
             if (project == project.rootProject && !project.rootProject.pluginManager.findPlugin('maven-publish')) {
                 project.rootProject.pluginManager.apply('maven-publish')
             }
