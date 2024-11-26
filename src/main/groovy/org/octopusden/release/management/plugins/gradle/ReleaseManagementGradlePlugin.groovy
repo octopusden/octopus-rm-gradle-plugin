@@ -34,18 +34,7 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
 
         LOGGER.info("Appling release management plugin to the project $project")
 
-        project.rootProject.pluginManager.apply('com.jfrog.artifactory')
-        project.rootProject.afterEvaluate { configureProjectPublish(project.rootProject) }
-
-        project.rootProject.subprojects { Project subProject ->
-            subProject.pluginManager.apply('com.jfrog.artifactory')
-            if (!subProject.state.executed) {
-                subProject.afterEvaluate { configureProjectPublish(subProject) }
-            } else {
-                configureProjectPublish(subProject)
-            }
-        }
-
+        srtupArtifactoryPublish(project)
 
         if (project.getTasksByName("exportDependenciesToTeamcity", false).empty) {
             project.task("exportDependenciesToTeamcity", type: ExportDependenciesToTeamcityTask)
@@ -55,6 +44,7 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
         if (!project.extensions.findByName("releaseManagement")) {
             project.extensions.create("releaseManagement", ReleaseManagementDependenciesExtension)
         }
+
 
         if (project.rootProject.hasProperty(PLUGIN_STATE_PROPERTY)) {
             LOGGER.trace("The project $project has been already configured to use release management plugin")
@@ -269,13 +259,26 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
         project.rootProject.extensions[PLUGIN_STATE_PROPERTY] = "applied"
     }
 
+    private void srtupArtifactoryPublish(Project project) {
+        LOGGER.info("== Setup Artifactory publish for the project $project")
+        project.rootProject.pluginManager.apply('com.jfrog.artifactory')
+        project.rootProject.afterEvaluate { configureProjectPublish(project.rootProject) }
+
+        project.rootProject.subprojects { Project subProject ->
+            subProject.pluginManager.apply('com.jfrog.artifactory')
+            if (!subProject.state.executed) {
+                subProject.afterEvaluate { configureProjectPublish(subProject) }
+            } else {
+                configureProjectPublish(subProject)
+            }
+        }
+    }
+
     private void configureProjectPublish(final Project project) {
         LOGGER.info("== Configure project publish for {}", project)
 
         def rootExtras = project.rootProject.extensions.extraProperties
-
         if (rootExtras.hasProperty('escrowBuild') && rootExtras.escrowBuild) {
-            LOGGER.info("== Configure escrow repository for {} publish tasks", project)
             if (project.pluginManager.findPlugin('maven-publish')) {
                 project.plugins.withType(MavenPublishPlugin.class) {
                     if (project.publishing.repositories.empty) {
@@ -291,29 +294,17 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
                 }
             }
         } else if (!project.rootProject.gradle.startParameter.offline && project.pluginManager.findPlugin('com.jfrog.artifactory')) {
-            LOGGER.info("== Configure artifactoryPublish for {}", project)
             if (project == project.rootProject && !project.rootProject.pluginManager.findPlugin('maven-publish')) {
                 project.rootProject.pluginManager.apply('maven-publish')
             }
             if (project.pluginManager.findPlugin('maven-publish')) {
-                LOGGER.info("== Configure maven-publish for {}", project)
                 project.tasks.findByPath("publish")?.dependsOn(project.tasks.findByPath("artifactoryPublish"))
-
-                LOGGER.info("  == task publish {}", project.tasks.findByPath("publish") )
-                LOGGER.info("  == task artifactoryPublish {}", project.tasks.findByPath("artifactoryPublish") )
-
                 project.tasks.withType(PublishToMavenRepository.class)?.forEach {
                     it.enabled = false
-                    LOGGER.info("== Disable publish task {}", it)
                 }
             } else {
-                LOGGER.info("== The project {} does not have maven-publish plugin, skip configuring artifactoryPublish", project)
                 project.tasks.findByPath("artifactoryPublish").skip = true
             }
-        } else {
-            LOGGER.info("== Is the project escrowBuild ? {} ", project.rootProject.extensions.extraProperties.escrowBuild)
-            LOGGER.info("== Is the project offline ? {} ", project.rootProject.gradle.startParameter.offline)
-            LOGGER.info("== Is the project has artifactory plugin ? {} ", project.pluginManager.findPlugin('com.jfrog.artifactory'))
         }
     }
 
