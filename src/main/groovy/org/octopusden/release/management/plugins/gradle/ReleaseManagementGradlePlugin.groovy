@@ -34,7 +34,7 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
 
         LOGGER.info("Appling release management plugin to the project $project")
 
-        srtupArtifactoryPublish(project)
+        setupArtifactoryPublish(project)
 
         if (project.getTasksByName("exportDependenciesToTeamcity", false).empty) {
             project.task("exportDependenciesToTeamcity", type: ExportDependenciesToTeamcityTask)
@@ -259,19 +259,24 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
         project.rootProject.extensions[PLUGIN_STATE_PROPERTY] = "applied"
     }
 
-    private void srtupArtifactoryPublish(Project project) {
-        LOGGER.info("== Setup Artifactory publish for the project $project")
-        project.rootProject.pluginManager.apply('com.jfrog.artifactory')
-        project.rootProject.afterEvaluate { configureProjectPublish(project.rootProject) }
+    private void setupArtifactoryPublish(Project project) {
 
-        project.rootProject.subprojects { Project subProject ->
-            subProject.pluginManager.apply('com.jfrog.artifactory')
-            if (!subProject.state.executed) {
-                subProject.afterEvaluate { configureProjectPublish(subProject) }
-            } else {
-                configureProjectPublish(subProject)
+        if (!project.rootProject.hasProperty('setupArtifactoryPublish')) {
+            LOGGER.info("== Setup Artifactory publish for the project $project")
+            project.rootProject.pluginManager.apply('com.jfrog.artifactory')
+            project.rootProject.afterEvaluate { configureProjectPublish(project.rootProject) }
+            project.rootProject.ext.setupArtifactoryPublish = true
+
+            project.rootProject.subprojects { Project subProject ->
+                subProject.pluginManager.apply('com.jfrog.artifactory')
+                if (!subProject.state.executed) {
+                    subProject.afterEvaluate { configureProjectPublish(subProject) }
+                } else {
+                    configureProjectPublish(subProject)
+                }
             }
         }
+
     }
 
     private void configureProjectPublish(final Project project) {
