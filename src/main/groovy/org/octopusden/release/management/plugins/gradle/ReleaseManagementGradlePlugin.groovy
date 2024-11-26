@@ -43,7 +43,7 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
             project.extensions.create("releaseManagement", ReleaseManagementDependenciesExtension)
         }
 
-        project.afterEvaluate {configJfrogForSubprj(project)}
+        configJfrogForSubprj(project)
 
         if (project.rootProject.hasProperty(PLUGIN_STATE_PROPERTY)) {
             LOGGER.trace("The project $project has been already configured to use release management plugin")
@@ -260,7 +260,11 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
 
     private void configJfrogForSubprj(Project project) {
         project.pluginManager.apply('com.jfrog.artifactory')
-        configureProjectPublish(project)
+        if (!project.state.executed) {
+            project.afterEvaluate { configureProjectPublish(project) }
+        } else {
+            project.exec { configJfrogForSubprj(project) }
+        }
     }
 
     private void configureProjectPublish(final Project project) {
