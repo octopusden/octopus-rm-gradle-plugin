@@ -34,6 +34,19 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
 
         LOGGER.info("Appling release management plugin to the project $project")
 
+        project.rootProject.pluginManager.apply('com.jfrog.artifactory')
+        project.rootProject.afterEvaluate { configureProjectPublish(project.rootProject) }
+
+        project.rootProject.subprojects { Project subProject ->
+            subProject.pluginManager.apply('com.jfrog.artifactory')
+            if (!subProject.state.executed) {
+                subProject.afterEvaluate { configureProjectPublish(subProject) }
+            } else {
+                configureProjectPublish(subProject)
+            }
+        }
+
+
         if (project.getTasksByName("exportDependenciesToTeamcity", false).empty) {
             project.task("exportDependenciesToTeamcity", type: ExportDependenciesToTeamcityTask)
         }
@@ -219,16 +232,7 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
                     }
                 }
             }
-            project.rootProject.afterEvaluate { configureProjectPublish(project.rootProject) }
 
-            project.rootProject.subprojects { Project subProject ->
-                subProject.pluginManager.apply('com.jfrog.artifactory')
-                if (!subProject.state.executed) {
-                    subProject.afterEvaluate { configureProjectPublish(subProject) }
-                } else {
-                    configureProjectPublish(subProject)
-                }
-            }
         }
 
         if (project.getRootProject().getGradle().getStartParameter().isDryRun() && "ASSEMBLE" == project.getRootProject().findProperty(ESCROW_PULL_IMAGES_PARAMETER_NAME)) {
