@@ -263,7 +263,7 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
         if (!project.state.executed) {
             project.afterEvaluate { configureProjectPublish(project) }
         } else {
-            project.exec { configureProjectPublish(project) }
+            configureProjectPublish(project)
         }
     }
 
