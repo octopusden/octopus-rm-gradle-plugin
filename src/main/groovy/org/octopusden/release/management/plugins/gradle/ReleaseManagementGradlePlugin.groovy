@@ -43,7 +43,7 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
             project.extensions.create("releaseManagement", ReleaseManagementDependenciesExtension)
         }
 
-        configJfrogForSubprj(project)
+        project.afterEvaluate {configJfrogForSubprj(project)}
 
         if (project.rootProject.hasProperty(PLUGIN_STATE_PROPERTY)) {
             LOGGER.trace("The project $project has been already configured to use release management plugin")
