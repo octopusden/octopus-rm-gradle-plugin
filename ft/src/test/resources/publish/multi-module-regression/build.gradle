@@ -1,6 +1,6 @@
 buildscript {
     dependencies {
-        classpath "org.octopusden.octopus-release-management:org.octopusden.octopus-release-management:${project.findProperty('octopus-release-management.version') ?: '2.0.27'}"
+        classpath "org.octopusden.octopus-release-management:org.octopusden.octopus-release-management:${project.findProperty('octopus-release-management.version') ?: '1.0-SNAPSHOT'}"
     }
 }
 
@@ -9,7 +9,7 @@ def thisVer = project.hasProperty("buildVersion") ? buildVersion : "1.0.DEV"
 version = thisVer
 
 subprojects {
-    group = "com.openwaygroup.release-management.ft"
+    group = "org.octopusden.octopus-release-management.ft"
     version = thisVer
 
     apply plugin: "java"
