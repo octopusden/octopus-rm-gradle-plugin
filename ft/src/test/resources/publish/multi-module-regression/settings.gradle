@@ -1,0 +1,10 @@
+pluginManagement {
+    plugins {
+        id 'org.octopusden.octopus-release-management' version settings['octopus-release-management.version']
+    }
+}
+
+rootProject.name = "rmtest-main"
+
+include "rmtest-log"
+include "rmtest-core"
