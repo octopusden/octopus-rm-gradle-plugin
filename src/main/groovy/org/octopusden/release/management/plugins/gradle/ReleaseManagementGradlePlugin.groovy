@@ -43,8 +43,6 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
             project.extensions.create("releaseManagement", ReleaseManagementDependenciesExtension)
         }
 
-        configJfrogForSubprj(project)
-
         if (project.rootProject.hasProperty(PLUGIN_STATE_PROPERTY)) {
             LOGGER.trace("The project $project has been already configured to use release management plugin")
             return
@@ -222,6 +220,15 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
                 }
             }
             project.rootProject.afterEvaluate { configureProjectPublish(project.rootProject) }
+
+            project.rootProject.subprojects { Project subProject ->
+                subProject.pluginManager.apply('com.jfrog.artifactory')
+                if (!subProject.state.executed) {
+                    subProject.afterEvaluate { configureProjectPublish(subProject) }
+                } else {
+                    configureProjectPublish(subProject)
+                }
+            }
         }
 
         if (project.getRootProject().getGradle().getStartParameter().isDryRun() && "ASSEMBLE" == project.getRootProject().findProperty(ESCROW_PULL_IMAGES_PARAMETER_NAME)) {
@@ -256,15 +263,6 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
 
         project.pluginManager.apply("com.platformlib.gradle-wrapper")
         project.rootProject.extensions[PLUGIN_STATE_PROPERTY] = "applied"
-    }
-
-    private void configJfrogForSubprj(Project project) {
-        project.pluginManager.apply('com.jfrog.artifactory')
-        if (!project.state.executed) {
-            project.afterEvaluate { configureProjectPublish(project) }
-        } else {
-            configureProjectPublish(project)
-        }
     }
 
     private void configureProjectPublish(final Project project) {
