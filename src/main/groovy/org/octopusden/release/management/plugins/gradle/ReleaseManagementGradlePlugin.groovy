@@ -263,7 +263,7 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
         if (!project.state.executed) {
             project.afterEvaluate { configureProjectPublish(project) }
         } else {
-            project.exec { configJfrogForSubprj(project) }
+            project.exec { configureProjectPublish(project) }
         }
     }
 
