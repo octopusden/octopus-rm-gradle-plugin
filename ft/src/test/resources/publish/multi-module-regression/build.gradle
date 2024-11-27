@@ -1,5 +1,7 @@
-plugins {
-    id 'org.octopusden.octopus-release-management'
+buildscript {
+    dependencies {
+        classpath "org.octopusden.octopus-release-management:org.octopusden.octopus-release-management:${project.findProperty('octopus-release-management.version') ?: '2.0.27'}"
+    }
 }
 
 def thisVer = project.hasProperty("buildVersion") ? buildVersion : "1.0.DEV"
@@ -15,10 +17,10 @@ subprojects {
     apply plugin: "org.octopusden.octopus-release-management"
 
     publishing {
-      publications {
-          maven(MavenPublication) {
-            from components.java
-          }
-      }
+        publications {
+            maven(MavenPublication) {
+                from components.java
+            }
+        }
     }
 }
