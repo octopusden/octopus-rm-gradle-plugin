@@ -28,11 +28,14 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
     private static final String PLUGIN_STATE_PROPERTY = "releaseManagementConfigurationState"
     private static final String ESCROW_PULL_IMAGES_PARAMETER_NAME = "escrow.build-phase"
     public static final String CYCLONE_DX_SKIP_PROPERTY = "cyclonedx.skip"
+    public static final String COM_JFROG_ARTIFACTORY = 'com.jfrog.artifactory'
 
     @Override
     void apply(Project project) {
 
         LOGGER.info("Appling release management plugin to the project $project")
+
+        setupRootPublishing(project)
 
         if (project.getTasksByName("exportDependenciesToTeamcity", false).empty) {
             project.task("exportDependenciesToTeamcity", type: ExportDependenciesToTeamcityTask)
@@ -193,7 +196,6 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
         }
 
         if (!project.rootProject.extensions.extraProperties.escrowBuild && baseUrl != null) {
-            project.rootProject.pluginManager.apply('com.jfrog.artifactory')
             def repositoryKey = ("true" == project.rootProject.findProperty("publishToReleaseRepository") ?: System.getProperty("publishToReleaseRepository", System.getenv("publishToReleaseRepository"))) ? 'rnd-maven-release-local' : 'rnd-maven-dev-local'
             LOGGER.debug("Deploy to {} repository", repositoryKey)
             final String jfrogPublishConfigs = project.rootProject.findProperty(ARTIFACTORY_PUBLISH_CONFIGS_PROPERTY) as String
@@ -220,16 +222,7 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
                     }
                 }
             }
-            project.rootProject.afterEvaluate { configureProjectPublish(project.rootProject) }
 
-            project.rootProject.subprojects { Project subProject ->
-                if (!subProject.state.executed) {
-                    subProject.pluginManager.apply('com.jfrog.artifactory')
-                    subProject.afterEvaluate { configureProjectPublish(subProject) }
-                } else {
-                    LOGGER.debug("Attempt to configure project {} more than once.", subProject.name);
-                }
-            }
         }
 
         if (project.getRootProject().getGradle().getStartParameter().isDryRun() && "ASSEMBLE" == project.getRootProject().findProperty(ESCROW_PULL_IMAGES_PARAMETER_NAME)) {
@@ -266,8 +259,31 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
         project.rootProject.extensions[PLUGIN_STATE_PROPERTY] = "applied"
     }
 
-    private void configureProjectPublish(final Project project) {
-        if (project.rootProject.extensions.extraProperties.escrowBuild) {
+    private void setupRootPublishing(Project project) {
+        if (!project.rootProject.hasProperty('setupArtifactoryPublish')) {
+            LOGGER.debug("Setup Artifactory publish for the project $project")
+            project.rootProject.ext.setupArtifactoryPublish = true
+            setupProjectPublishingCall(project.rootProject)
+            project.rootProject.subprojects { Project subProject ->
+                setupProjectPublishingCall(subProject)
+            }
+        }
+    }
+
+    private void setupProjectPublishingCall(Project subProject) {
+        subProject.pluginManager.apply(COM_JFROG_ARTIFACTORY)
+        if (!subProject.state.executed) {
+            subProject.afterEvaluate { setupProjectPublishing(subProject) }
+        } else {
+            setupProjectPublishing(subProject)
+        }
+    }
+
+    private void setupProjectPublishing(final Project project) {
+        LOGGER.debug("Configure project publish for {}", project)
+
+        def rootExtras = project.rootProject.extensions.extraProperties
+        if (rootExtras.hasProperty('escrowBuild') && rootExtras.escrowBuild) {
             if (project.pluginManager.findPlugin('maven-publish')) {
                 project.plugins.withType(MavenPublishPlugin.class) {
                     if (project.publishing.repositories.empty) {
