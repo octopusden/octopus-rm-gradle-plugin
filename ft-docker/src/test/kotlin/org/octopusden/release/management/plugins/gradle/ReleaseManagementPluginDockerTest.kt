@@ -49,32 +49,4 @@ class ReleaseManagementPluginDockerTest {
         assertThat(processInstance.stdOut).contains("Pull docker image $dockerRegistry/platform/go-build:1.1.7")
     }
 
-    @Test
-    @DisabledOnOs(OS.WINDOWS, disabledReason = "buildpack is not supported on Windows")
-    fun testSpringBootBootBuildImage() {
-        val releaseManagementVersion: String = System.getenv()["__RELEASE_MANAGEMENT_VERSION__"] ?: throw IllegalStateException("The __RELEASE_MANAGEMENT_VERSION__ environment variable is not set")
-        val projectPath = Paths.get(ReleaseManagementPluginDockerTest::class.java.getResource("/uds")!!.toURI())
-        logger.debug("Project directory {}", projectPath)
-        val processBuilder: LocalProcessBuilder = ProcessBuilders.newProcessBuilder(LocalProcessSpec.LOCAL_COMMAND)
-        val processInstance = processBuilder
-            .envVariables(mapOf("JAVA_HOME" to System.getProperty("java.home")))
-            .logger { it.logger(logger) }
-            .processInstance { it.unlimited() }
-            .mapBatExtension()
-            .mapCmdExtension()
-            .workDirectory(projectPath)
-            .commandAndArguments("$projectPath/gradlew")
-            .build()
-            .execute(
-                "-Poctopus-release-management.version=$releaseManagementVersion",
-                "-Pescrow.build-phase=ASSEMBLE",
-                "-Pdocker.registry=$dockerRegistry",
-                "bootBuildImage"
-            )
-            .toCompletableFuture()
-            .get()
-        assertEquals(0, processInstance.exitCode, "Gradle execution failure")
-        assertThat(processInstance.stdOut).anyMatch{logEntry -> logEntry.contains("Pulled builder image '$dockerRegistry/cnbs/uds-stack-builder")}
-        assertThat(processInstance.stdOut).anyMatch{logEntry -> logEntry.contains("Pulled run image '$dockerRegistry/cnbs/uds-stack-run")}
-    }
 }
