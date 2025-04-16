@@ -23,6 +23,7 @@ repositories {
     }
 }
 
+
 dependencies {
     implementation group: 'org.jfrog.buildinfo', name: 'build-info-extractor-gradle', version: project['jfrog-artifactory.version']
     implementation group: 'org.octopusden.octopus.infrastructure', name: 'components-registry-service-client', version: '2.0.11'
@@ -31,6 +32,8 @@ dependencies {
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
     implementation group: 'com.platformlib.gradle-wrapper', name: 'platformlib-gradle-wrapper-plugin', version: project['com.platformlib.gradle-wrapper.version']
     implementation group: 'org.cyclonedx', name: 'cyclonedx-gradle-plugin', version: project['cyclonedx.version']
+    implementation platform("io.github.openfeign:feign-bom:${project["openfeign.version"]}")
+    implementation group: 'org.octopusden.octopus.release-management-service', name: 'client', version: project['release-management-service-client.version']
 }
 
 gradlePlugin {
