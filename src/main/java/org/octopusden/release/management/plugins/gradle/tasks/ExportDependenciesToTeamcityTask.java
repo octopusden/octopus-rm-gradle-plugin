@@ -49,6 +49,10 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
             .map(v -> Boolean.parseBoolean(v.toString()))
             .orElse(false);
 
+    private final boolean skipCheckDependencies = Optional.ofNullable(getProject().findProperty("skipCheckDependencies"))
+            .map(v -> Boolean.parseBoolean(v.toString()))
+            .orElse(false);
+
     private ComponentsRegistryServiceClient componentsRegistryServiceClient;
     private ClassicReleaseManagementServiceClient rmServiceClient;
     private List<String> buildsErrors = new ArrayList<>();
@@ -102,7 +106,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         } else {
             dependenciesString = releaseDependenciesConfiguration.getComponents()
                     .stream()
-                    .filter(c -> checkBuild(c.getName(), c.getVersion()))
+                    .filter(c -> skipCheckDependencies || checkBuild(c.getName(), c.getVersion()))
                     .map(c -> String.format(COMPONENT_FORMAT, c.getName(), c.getVersion()))
                     .distinct()
                     .sorted()
@@ -127,8 +131,8 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
     }
 
     private void printProperties() {
-        getLogger().info("ExportDependenciesToTeamcityTask Parameters: excludedConfigurations={}, includeAllDependencies={}, componentRegistryServiceUrl={}",
-                excludedConfigurations, includeAllDependencies, componentsRegistryServiceUrl);
+        getLogger().info("ExportDependenciesToTeamcityTask Parameters: excludedConfigurations={}, includeAllDependencies={}, componentRegistryServiceUrl={}, skipCheckDependencies={}",
+                excludedConfigurations, includeAllDependencies, componentsRegistryServiceUrl, skipCheckDependencies);
     }
 
     private ClassicReleaseManagementServiceClient getRmServiceClient() {

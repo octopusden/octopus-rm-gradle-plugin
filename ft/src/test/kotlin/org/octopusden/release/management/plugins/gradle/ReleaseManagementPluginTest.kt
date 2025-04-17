@@ -130,16 +130,16 @@ class ReleaseManagementPluginTest {
     @ParameterizedTest
     @MethodSource("dependedComponentsRegistrationData")
     fun testDependedComponentsRegistration(project: String, commandPropFile: String, expected: Collection<String>) {
-        teamcityRependenciesRegistrationTest(project, commandPropFile, expected)
+        teamcityDependenciesRegistrationTest(project, commandPropFile, expected)
     }
 
     @ParameterizedTest
     @MethodSource("subprojectDeclaredData")
     fun testSubprojectDeclared(project: String, commandPropFile: String, expected: Collection<String>) {
-        teamcityRependenciesRegistrationTest(project, commandPropFile, expected)
+        teamcityDependenciesRegistrationTest(project, commandPropFile, expected)
     }
 
-    fun teamcityRependenciesRegistrationTest(
+    fun teamcityDependenciesRegistrationTest(
         project: String,
         gradleCommandPropFile: String,
         expectedComponents: Collection<String>
@@ -303,6 +303,7 @@ class ReleaseManagementPluginTest {
             .execute(
                 "-Poctopus-release-management.version=$releaseManagementVersion",
                 "-PbuildVersion=$buildVersion",
+                "-PskipCheckDependencies=true",
             )
             .toCompletableFuture()
             .get()
