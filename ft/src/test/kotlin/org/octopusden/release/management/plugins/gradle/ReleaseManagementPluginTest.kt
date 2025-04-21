@@ -453,5 +453,6 @@ class ReleaseManagementPluginTest(val mockRmServer: ClientAndServer) {
             .toCompletableFuture()
             .get()
         assertEquals(1, processInstance.exitCode, "Gradle execution failure")
+        assertThat(stdout).contains("Build for ReleaseManagementService:1.0.3 not found")
     }
 }
