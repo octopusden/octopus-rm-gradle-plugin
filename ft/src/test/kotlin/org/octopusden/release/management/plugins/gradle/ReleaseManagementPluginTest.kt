@@ -362,8 +362,7 @@ class ReleaseManagementPluginTest(val mockRmServer: ClientAndServer) {
         val endpoints = listOf<Endpoint>(
             Endpoint(
                 path = "/rest/api/1/builds/component/ReleaseManagementService/version/1.0.1",
-                body = """
-                    {
+                body = """{
                           "component": "ReleaseManagementService",
                           "version": "1.0.1",
                           "status": "RELEASE",
@@ -388,8 +387,7 @@ class ReleaseManagementPluginTest(val mockRmServer: ClientAndServer) {
                             "RC": "2024-07-04T19:56:43.000+00:00",
                             "RELEASE": "2024-07-04T20:03:30.000+00:00"
                           }
-                    }
-                    """.trimIndent().replace("\n",""),
+                    }""".trimIndent().replace("\n",""),
                 status = 200,
             ),
             Endpoint(
@@ -448,11 +446,10 @@ class ReleaseManagementPluginTest(val mockRmServer: ClientAndServer) {
                 "-Poctopus-release-management.version=$releaseManagementVersion",
                 "-PbuildVersion=$buildVersion",
                 "-Prelease-management-service.url=http://${mockRmServer.remoteAddress().hostString}:${mockRmServer.remoteAddress().port}",
-                "-i", "-s"
             )
             .toCompletableFuture()
             .get()
         assertEquals(1, processInstance.exitCode, "Gradle execution failure")
-        assertThat(stdout).contains("Build for ReleaseManagementService:1.0.3 not found")
+        assertThat(stdout).contains("[ERROR] Build for ReleaseManagementService:1.0.3 not found")
     }
 }
