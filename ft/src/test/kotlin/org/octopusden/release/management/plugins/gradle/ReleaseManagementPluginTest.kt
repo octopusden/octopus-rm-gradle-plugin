@@ -314,7 +314,7 @@ class ReleaseManagementPluginTest(val mockRmServer: ClientAndServer) {
             .execute(
                 "-Poctopus-release-management.version=$releaseManagementVersion",
                 "-PbuildVersion=$buildVersion",
-                "-PskipCheckDependencies=true",
+                "-PskipCheckDependencies=true"
             )
             .toCompletableFuture()
             .get()
