@@ -21,7 +21,6 @@ dependencies {
     testImplementation group: 'org.assertj', name: 'assertj-core', version: project['assertj.version']
     testImplementation 'org.xmlunit:xmlunit-assertj:2.8.2'
     testImplementation project(':artifactory-manager')
-    testImplementation "org.mock-server:mockserver-junit-jupiter-no-dependencies:${project.'mockserver.version'}"
 
     implementation platform("com.fasterxml.jackson:jackson-bom:${project['jackson.version']}")
     implementation "com.fasterxml.jackson.core:jackson-databind"

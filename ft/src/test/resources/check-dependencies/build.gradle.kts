@@ -11,7 +11,7 @@ releaseManagement {
 
 tasks.create<DefaultTask>("run") {
     doLast {
-        println("Tht [${project.name}] running.")
+        println("That [${project.name}] running.")
     }
 }
 defaultTasks("run")

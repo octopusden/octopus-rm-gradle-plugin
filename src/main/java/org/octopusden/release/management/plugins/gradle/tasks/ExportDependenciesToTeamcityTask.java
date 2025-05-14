@@ -26,9 +26,6 @@ import org.octopusden.octopus.components.registry.client.impl.ClassicComponentsR
 import org.octopusden.octopus.components.registry.client.impl.ClassicComponentsRegistryServiceClientUrlProvider;
 import org.octopusden.octopus.components.registry.core.dto.ArtifactDependency;
 import org.octopusden.octopus.components.registry.core.dto.VersionedComponent;
-import org.octopusden.octopus.releasemanagementservice.client.common.exception.NotFoundException;
-import org.octopusden.octopus.releasemanagementservice.client.impl.ClassicReleaseManagementServiceClient;
-import org.octopusden.octopus.releasemanagementservice.client.impl.ReleaseManagementServiceClientParametersProvider;
 import org.octopusden.release.management.plugins.gradle.ReleaseDependenciesConfiguration;
 import org.octopusden.release.management.plugins.gradle.ReleaseManagementDependenciesExtension;
 import org.octopusden.release.management.plugins.gradle.dto.ComponentArtifact;
@@ -38,7 +35,6 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
 
     private static final String COMPONENT_FORMAT = "%s:%s";
     private static final String COMPONENT_REGISTRY_SERVICE_URL_PROPERTY = "COMPONENT_REGISTRY_SERVICE_URL";
-    private static final String RELEASE_MANAGEMENT_SERVICE_URL_PROPERTY = "release-management-service.url";
 
     private final String componentsRegistryServiceUrl = System.getenv(COMPONENT_REGISTRY_SERVICE_URL_PROPERTY);
 
@@ -49,13 +45,8 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
             .map(v -> Boolean.parseBoolean(v.toString()))
             .orElse(false);
 
-    private final boolean skipCheckDependencies = Optional.ofNullable(getProject().findProperty("skipCheckDependencies"))
-            .map(v -> Boolean.parseBoolean(v.toString()))
-            .orElse(false);
-
     private ComponentsRegistryServiceClient componentsRegistryServiceClient;
-    private ClassicReleaseManagementServiceClient rmServiceClient;
-    private List<String> buildsErrors = new ArrayList<>();
+    private final List<String> buildsErrors = new ArrayList<>();
 
     public ExportDependenciesToTeamcityTask() {
     }
@@ -106,7 +97,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         } else {
             dependenciesString = releaseDependenciesConfiguration.getComponents()
                     .stream()
-                    .filter(c -> skipCheckDependencies || checkBuild(c.getName(), c.getVersion()))
+                    .filter(c -> checkComponentDependency(c.getName(), c.getVersion()))
                     .map(c -> String.format(COMPONENT_FORMAT, c.getName(), c.getVersion()))
                     .distinct()
                     .sorted()
@@ -117,41 +108,30 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         }
 
         getLogger().info("ExportDependenciesToTeamcityTask Found dependencies: {}", dependenciesString);
-        System.out.printf("##teamcity[setParameter name='DEPENDENCIES' value='%s']%n", dependenciesString);
+        System.out.printf("##teamcity[setParameter name='DEPENDENCIES' value='%s']%n", escapedTeamCityValues(dependenciesString));
     }
 
-    private boolean checkBuild(String component, String version) {
-        try {
-            getRmServiceClient().getBuild(component, version);
+    private boolean checkComponentDependency(String name, String version) {
+        if(version.matches("\\d+([.-]\\d+)*")) {
             return true;
-        } catch (NotFoundException e) {
-            buildsErrors.add("[ERROR] " + e.getMessage());
-            return false;
-        }
+        } else {
+                buildsErrors.add(String.format("[ERROR] Version format not valid %s:%s", name, version));
+                return false;
+            }
+    }
+
+    private String escapedTeamCityValues(String value) {
+        return value.replace("|", "||")
+                .replace("'", "|'")
+                .replace("[", "|[")
+                .replace("]", "|]")
+                .replace("\n", "|n")
+                .replace("\r", "|r");
     }
 
     private void printProperties() {
-        getLogger().info("ExportDependenciesToTeamcityTask Parameters: excludedConfigurations={}, includeAllDependencies={}, componentRegistryServiceUrl={}, skipCheckDependencies={}",
-                excludedConfigurations, includeAllDependencies, componentsRegistryServiceUrl, skipCheckDependencies);
-    }
-
-    private ClassicReleaseManagementServiceClient getRmServiceClient() {
-        if (rmServiceClient == null) {
-            rmServiceClient = new ClassicReleaseManagementServiceClient(new ReleaseManagementServiceClientParametersProvider() {
-                @NotNull
-                @Override
-                public String getApiUrl() {
-                    return (String) Optional.ofNullable(getProject().findProperty(RELEASE_MANAGEMENT_SERVICE_URL_PROPERTY))
-                            .orElseThrow(() -> new GradleException("[ERROR] Property '{" + RELEASE_MANAGEMENT_SERVICE_URL_PROPERTY + "}' required."));
-                }
-
-                @Override
-                public int getTimeRetryInMillis() {
-                    return 180000;
-                }
-            });
-        }
-        return rmServiceClient;
+        getLogger().info("ExportDependenciesToTeamcityTask Parameters: excludedConfigurations={}, includeAllDependencies={}, componentRegistryServiceUrl={}",
+                excludedConfigurations, includeAllDependencies, componentsRegistryServiceUrl);
     }
 
     @NotNull

@@ -4,13 +4,11 @@ import org.octopusden.f1.automation.artifactory.artifactory
 import com.platformlib.process.factory.ProcessBuilders
 import com.platformlib.process.local.builder.LocalProcessBuilder
 import com.platformlib.process.local.specification.LocalProcessSpec
-import org.apache.http.entity.ContentType
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
@@ -20,17 +18,9 @@ import java.nio.file.Paths
 import java.util.*
 import java.util.stream.Stream
 import kotlin.IllegalStateException
-import org.mockserver.model.HttpRequest
-import org.mockserver.model.HttpResponse
-import kotlin.collections.ArrayList
-import org.mockserver.junit.jupiter.MockServerExtension
-import org.mockserver.junit.jupiter.MockServerSettings
-import org.mockserver.integration.ClientAndServer;
 
 
-@ExtendWith(MockServerExtension::class)
-@MockServerSettings(ports = intArrayOf(1080))
-class ReleaseManagementPluginTest(val mockRmServer: ClientAndServer) {
+class ReleaseManagementPluginTest {
     companion object {
         private val logger = LoggerFactory.getLogger(ReleaseManagementPluginTest::class.java)
 
@@ -314,7 +304,6 @@ class ReleaseManagementPluginTest(val mockRmServer: ClientAndServer) {
             .execute(
                 "-Poctopus-release-management.version=$releaseManagementVersion",
                 "-PbuildVersion=$buildVersion",
-                "-PskipCheckDependencies=true"
             )
             .toCompletableFuture()
             .get()
@@ -356,74 +345,9 @@ class ReleaseManagementPluginTest(val mockRmServer: ClientAndServer) {
         assertEquals(0, processInstance.exitCode, "Gradle execution failure")
     }
 
-    private fun startRmMockServer() {
-        data class Endpoint(val path: String, val body: String, val status: Int)
-
-        val endpoints = listOf<Endpoint>(
-            Endpoint(
-                path = "/rest/api/1/builds/component/ReleaseManagementService/version/1.0.1",
-                body = """{
-                          "component": "ReleaseManagementService",
-                          "version": "1.0.1",
-                          "status": "RELEASE",
-                          "parents": [
-                            {
-                              "component": "parent",
-                              "version": "1.1",
-                              "status": "BUILD"
-                            }
-                          ],
-                          "dependencies": [],
-                          "commits": [
-                            {
-                              "repository": "ssh://git@github.com:octopusden/octopus-release-management-service.git",
-                              "sha": "0da242ad739a01e7c50aeb522fd17e1eece77bb3",
-                              "branch": "refs/heads/master",
-                              "inReleaseBranch": true
-                            }
-                          ],
-                          "statusHistory": {
-                            "BUILD": "2024-07-04T13:12:17.000+00:00",
-                            "RC": "2024-07-04T19:56:43.000+00:00",
-                            "RELEASE": "2024-07-04T20:03:30.000+00:00"
-                          }
-                    }""".trimIndent().replace("\n",""),
-                status = 200,
-            ),
-            Endpoint(
-                path = "/rest/api/1/builds/component/ReleaseManagementService/version/1.0.3",
-                body = """
-                {
-                    "errorCode": "NOT_FOUND",
-                    "errorMessage": "Build for ReleaseManagementService:1.0.3 not found"
-                }""".trimIndent().replace("\n",""),
-                status = 404,
-            ),
-        )
-        mockRmServer.reset()
-        endpoints.forEach { e ->
-            mockRmServer.`when`(
-                HttpRequest.request().withMethod("GET").withPath(e.path)
-            ).respond {
-                logger.debug(
-                    "MockServer request: {} {} {} {}",
-                    it.method,
-                    it.path,
-                    it.queryStringParameterList.joinToString(","),
-                    it.pathParameterList.joinToString(",")
-                )
-                HttpResponse.response()
-                    .withHeader("Content-Type", ContentType.APPLICATION_JSON.mimeType)
-                    .withBody(e.body)
-                    .withStatusCode(e.status)
-            }
-        }
-    }
-
     @Test
     @DisplayName("Check dependencies test")
     fun testCheckDependencies() {
-        startRmMockServer()
         val releaseManagementVersion: String = System.getenv()["__RELEASE_MANAGEMENT_VERSION__"]
             ?: throw IllegalStateException("The __RELEASE_MANAGEMENT_VERSION__ environment variable is not set")
         val buildVersion: String = System.getenv()["__BUILD_VERSION__"]
@@ -444,12 +368,11 @@ class ReleaseManagementPluginTest(val mockRmServer: ClientAndServer) {
             .build()
             .execute(
                 "-Poctopus-release-management.version=$releaseManagementVersion",
-                "-PbuildVersion=$buildVersion",
-                "-Prelease-management-service.url=http://${mockRmServer.remoteAddress().hostString}:${mockRmServer.remoteAddress().port}",
+                "-PbuildVersion=$buildVersion"
             )
             .toCompletableFuture()
             .get()
         assertEquals(1, processInstance.exitCode, "Gradle execution failure")
-        assertThat(stdout).contains("[ERROR] Build for ReleaseManagementService:1.0.3 not found")
+        assertThat(stdout).contains("[ERROR] Version format not valid ReleaseManagementService:1.0-SNAPSHOT")
     }
 }
