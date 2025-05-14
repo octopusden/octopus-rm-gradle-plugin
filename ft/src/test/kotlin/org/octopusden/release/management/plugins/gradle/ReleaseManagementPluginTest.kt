@@ -19,7 +19,6 @@ import java.util.*
 import java.util.stream.Stream
 import kotlin.IllegalStateException
 
-
 class ReleaseManagementPluginTest {
     companion object {
         private val logger = LoggerFactory.getLogger(ReleaseManagementPluginTest::class.java)
