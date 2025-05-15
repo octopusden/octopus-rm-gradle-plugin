@@ -112,12 +112,12 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
     }
 
     private boolean checkComponentDependency(String name, String version) {
-        if(version.matches("\\d+([.-]\\d+)*")) {
+        if(version.matches("\\d+([._-]\\d+)*")) {
             return true;
         } else {
-                buildsErrors.add(String.format("[ERROR] Version format not valid %s:%s", name, version));
-                return false;
-            }
+            buildsErrors.add(String.format("[ERROR] Version format not valid %s:%s", name, version));
+            return false;
+        }
     }
 
     private String escapedTeamCityValues(String value) {
