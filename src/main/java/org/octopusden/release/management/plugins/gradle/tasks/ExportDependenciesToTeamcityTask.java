@@ -81,6 +81,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
 
         final ReleaseDependenciesConfiguration releaseDependenciesConfiguration = (ReleaseDependenciesConfiguration) releaseManagementDependenciesExtension.getReleaseDependenciesConfiguration();
         final List<VersionedComponent> components = releaseDependenciesConfiguration.getComponents();
+        assertValidFormat(components);
 
         final String dependenciesString;
         if (releaseDependenciesConfiguration.isFromDependencies() || includeAllDependencies) {
@@ -95,7 +96,6 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
                     .sorted()
                     .collect(Collectors.joining(","));
         } else {
-            assertValidFormat(components);
             dependenciesString = components
                     .stream()
                     .map(c -> String.format(COMPONENT_FORMAT, c.getName(), c.getVersion()))
