@@ -5,7 +5,7 @@ plugins {
 releaseManagement {
     releaseDependencies(
         mapOf("name" to "ReleaseManagementService", "version" to project.properties["ReleaseManagementService.version"]),
-        mapOf("name" to "ReleaseManagementService", "version" to project.properties["ReleaseManagementService.not.exist.version"]),
+        mapOf("name" to "ReleaseManagementService", "version" to project.properties["ReleaseManagementService.not.valid.version"]),
     )
 }
 

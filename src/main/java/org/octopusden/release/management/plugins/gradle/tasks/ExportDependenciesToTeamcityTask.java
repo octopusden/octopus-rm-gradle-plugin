@@ -25,11 +25,11 @@ import org.octopusden.octopus.components.registry.client.ComponentsRegistryServi
 import org.octopusden.octopus.components.registry.client.impl.ClassicComponentsRegistryServiceClient;
 import org.octopusden.octopus.components.registry.client.impl.ClassicComponentsRegistryServiceClientUrlProvider;
 import org.octopusden.octopus.components.registry.core.dto.ArtifactDependency;
-import org.octopusden.octopus.components.registry.core.dto.VersionedComponent;
 import org.octopusden.release.management.plugins.gradle.ReleaseDependenciesConfiguration;
 import org.octopusden.release.management.plugins.gradle.ReleaseManagementDependenciesExtension;
 import org.octopusden.release.management.plugins.gradle.dto.ComponentArtifact;
 import org.octopusden.release.management.plugins.gradle.dto.Module;
+import org.octopusden.release.management.plugins.gradle.dto.VersionedComponent;
 
 public class ExportDependenciesToTeamcityTask extends DefaultTask {
 
@@ -46,7 +46,6 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
             .orElse(false);
 
     private ComponentsRegistryServiceClient componentsRegistryServiceClient;
-    private final List<String> buildsErrors = new ArrayList<>();
 
     public ExportDependenciesToTeamcityTask() {
     }
@@ -81,12 +80,13 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
                 .getByType(ReleaseManagementDependenciesExtension.class);
 
         final ReleaseDependenciesConfiguration releaseDependenciesConfiguration = (ReleaseDependenciesConfiguration) releaseManagementDependenciesExtension.getReleaseDependenciesConfiguration();
+        final List<VersionedComponent> components = releaseDependenciesConfiguration.getComponents();
 
         final String dependenciesString;
         if (releaseDependenciesConfiguration.isFromDependencies() || includeAllDependencies) {
 
             final List<String> componentsFromDependencies = getArtifactDependenciesString(releaseDependenciesConfiguration);
-            final List<String> componentsFromConfiguration = releaseDependenciesConfiguration.getComponents()
+            final List<String> componentsFromConfiguration = components
                     .stream()
                     .map(c -> String.format(COMPONENT_FORMAT, c.getName(), c.getVersion())).collect(Collectors.toList());
 
@@ -95,28 +95,28 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
                     .sorted()
                     .collect(Collectors.joining(","));
         } else {
-            dependenciesString = releaseDependenciesConfiguration.getComponents()
+            assertValidFormat(components);
+            dependenciesString = components
                     .stream()
-                    .filter(c -> checkComponentDependency(c.getName(), c.getVersion()))
                     .map(c -> String.format(COMPONENT_FORMAT, c.getName(), c.getVersion()))
                     .distinct()
                     .sorted()
                     .collect(Collectors.joining(","));
-            if (!buildsErrors.isEmpty()) {
-                throw new GradleException(String.join("\n", buildsErrors));
-            }
         }
 
         getLogger().info("ExportDependenciesToTeamcityTask Found dependencies: {}", dependenciesString);
         System.out.printf("##teamcity[setParameter name='DEPENDENCIES' value='%s']%n", escapedTeamCityValues(dependenciesString));
     }
 
-    private boolean checkComponentDependency(String name, String version) {
-        if(version.matches("\\d+([._-]\\d+)*")) {
-            return true;
-        } else {
-            buildsErrors.add(String.format("[ERROR] Version format not valid %s:%s", name, version));
-            return false;
+    private void assertValidFormat(List<VersionedComponent> components) {
+        String notValidComponents = components
+                .stream()
+                .filter(c -> !c.getVersion().matches("\\d+([._-]\\d+)*"))
+                .map(c -> String.format("[ERROR] Version format not valid %s:%s", c.getName(), c.getVersion()))
+                .collect(Collectors.joining("\n"));
+
+        if (!notValidComponents.isEmpty()) {
+            throw new GradleException(notValidComponents);
         }
     }
 
@@ -150,7 +150,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
                 .getArtifactComponents()
                 .stream()
                 .map(ac -> {
-                    final VersionedComponent component = ac.getComponent();
+                    final org.octopusden.octopus.components.registry.core.dto.VersionedComponent component = ac.getComponent();
                     final String result;
                     if (component == null) {
                         getLogger().error("ExportDependenciesToTeamcityTask Component not found by {}", ac.getArtifact());
