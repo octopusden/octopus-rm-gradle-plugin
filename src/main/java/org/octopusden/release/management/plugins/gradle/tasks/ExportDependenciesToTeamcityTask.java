@@ -35,6 +35,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
 
     private static final String COMPONENT_FORMAT = "%s:%s";
     private static final String COMPONENT_REGISTRY_SERVICE_URL_PROPERTY = "COMPONENT_REGISTRY_SERVICE_URL";
+    private static final String VERSION_FORMAT_PATTERN = "\\d+([._-]\\d+)*";
 
     private final String componentsRegistryServiceUrl = System.getenv(COMPONENT_REGISTRY_SERVICE_URL_PROPERTY);
 
@@ -111,7 +112,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
     private void assertValidFormat(List<VersionedComponent> components) {
         String notValidComponents = components
                 .stream()
-                .filter(c -> !c.getVersion().matches("\\d+([._-]\\d+)*"))
+                .filter(c -> !c.getVersion().matches(VERSION_FORMAT_PATTERN))
                 .map(c -> String.format("[ERROR] Version format not valid %s:%s", c.getName(), c.getVersion()))
                 .collect(Collectors.joining("\n"));
 
