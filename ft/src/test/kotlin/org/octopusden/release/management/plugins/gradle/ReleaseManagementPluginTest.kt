@@ -130,16 +130,16 @@ class ReleaseManagementPluginTest {
     @ParameterizedTest
     @MethodSource("dependedComponentsRegistrationData")
     fun testDependedComponentsRegistration(project: String, commandPropFile: String, expected: Collection<String>) {
-        teamcityRependenciesRegistrationTest(project, commandPropFile, expected)
+        teamcityDependenciesRegistrationTest(project, commandPropFile, expected)
     }
 
     @ParameterizedTest
     @MethodSource("subprojectDeclaredData")
     fun testSubprojectDeclared(project: String, commandPropFile: String, expected: Collection<String>) {
-        teamcityRependenciesRegistrationTest(project, commandPropFile, expected)
+        teamcityDependenciesRegistrationTest(project, commandPropFile, expected)
     }
 
-    fun teamcityRependenciesRegistrationTest(
+    fun teamcityDependenciesRegistrationTest(
         project: String,
         gradleCommandPropFile: String,
         expectedComponents: Collection<String>
@@ -344,6 +344,34 @@ class ReleaseManagementPluginTest {
         assertEquals(0, processInstance.exitCode, "Gradle execution failure")
     }
 
-
-
+    @Test
+    @DisplayName("Check dependencies test")
+    fun testCheckDependencies() {
+        val releaseManagementVersion: String = System.getenv()["__RELEASE_MANAGEMENT_VERSION__"]
+            ?: throw IllegalStateException("The __RELEASE_MANAGEMENT_VERSION__ environment variable is not set")
+        val buildVersion: String = System.getenv()["__BUILD_VERSION__"]
+            ?: throw IllegalStateException("The __BUILD_VERSION__ environment variable is not set")
+        val projectPath =
+            Paths.get(ReleaseManagementPluginTest::class.java.getResource("/check-dependencies")!!.toURI())
+        val processBuilder: LocalProcessBuilder = ProcessBuilders.newProcessBuilder(LocalProcessSpec.LOCAL_COMMAND)
+        val stdout = ArrayList<String>()
+        val processInstance = processBuilder
+            .envVariables(mapOf("JAVA_HOME" to System.getProperty("java.home")))
+            .logger { it.logger(logger) }
+            .mapBatExtension()
+            .mapCmdExtension()
+            .workDirectory(projectPath)
+            .stdOutConsumer(stdout::add)
+            .stdErrConsumer(stdout::add)
+            .commandAndArguments("$projectPath/gradlew")
+            .build()
+            .execute(
+                "-Poctopus-release-management.version=$releaseManagementVersion",
+                "-PbuildVersion=$buildVersion"
+            )
+            .toCompletableFuture()
+            .get()
+        assertEquals(1, processInstance.exitCode, "Gradle execution failure")
+        assertThat(stdout).contains("[ERROR] Version format not valid ReleaseManagementService:1.0-SNAPSHOT")
+    }
 }

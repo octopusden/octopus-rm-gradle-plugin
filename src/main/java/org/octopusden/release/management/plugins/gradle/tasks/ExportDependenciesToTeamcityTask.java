@@ -14,6 +14,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
@@ -24,16 +25,17 @@ import org.octopusden.octopus.components.registry.client.ComponentsRegistryServi
 import org.octopusden.octopus.components.registry.client.impl.ClassicComponentsRegistryServiceClient;
 import org.octopusden.octopus.components.registry.client.impl.ClassicComponentsRegistryServiceClientUrlProvider;
 import org.octopusden.octopus.components.registry.core.dto.ArtifactDependency;
-import org.octopusden.octopus.components.registry.core.dto.VersionedComponent;
 import org.octopusden.release.management.plugins.gradle.ReleaseDependenciesConfiguration;
 import org.octopusden.release.management.plugins.gradle.ReleaseManagementDependenciesExtension;
 import org.octopusden.release.management.plugins.gradle.dto.ComponentArtifact;
 import org.octopusden.release.management.plugins.gradle.dto.Module;
+import org.octopusden.release.management.plugins.gradle.dto.VersionedComponent;
 
 public class ExportDependenciesToTeamcityTask extends DefaultTask {
 
     private static final String COMPONENT_FORMAT = "%s:%s";
     private static final String COMPONENT_REGISTRY_SERVICE_URL_PROPERTY = "COMPONENT_REGISTRY_SERVICE_URL";
+    private static final String VERSION_FORMAT_PATTERN = "\\d+([._-]\\d+)*";
 
     private final String componentsRegistryServiceUrl = System.getenv(COMPONENT_REGISTRY_SERVICE_URL_PROPERTY);
 
@@ -79,12 +81,14 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
                 .getByType(ReleaseManagementDependenciesExtension.class);
 
         final ReleaseDependenciesConfiguration releaseDependenciesConfiguration = (ReleaseDependenciesConfiguration) releaseManagementDependenciesExtension.getReleaseDependenciesConfiguration();
+        final List<VersionedComponent> components = releaseDependenciesConfiguration.getComponents();
+        assertValidFormat(components);
 
         final String dependenciesString;
         if (releaseDependenciesConfiguration.isFromDependencies() || includeAllDependencies) {
 
             final List<String> componentsFromDependencies = getArtifactDependenciesString(releaseDependenciesConfiguration);
-            final List<String> componentsFromConfiguration = releaseDependenciesConfiguration.getComponents()
+            final List<String> componentsFromConfiguration = components
                     .stream()
                     .map(c -> String.format(COMPONENT_FORMAT, c.getName(), c.getVersion())).collect(Collectors.toList());
 
@@ -93,7 +97,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
                     .sorted()
                     .collect(Collectors.joining(","));
         } else {
-            dependenciesString = releaseDependenciesConfiguration.getComponents()
+            dependenciesString = components
                     .stream()
                     .map(c -> String.format(COMPONENT_FORMAT, c.getName(), c.getVersion()))
                     .distinct()
@@ -102,7 +106,28 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         }
 
         getLogger().info("ExportDependenciesToTeamcityTask Found dependencies: {}", dependenciesString);
-        System.out.printf("##teamcity[setParameter name='DEPENDENCIES' value='%s']%n", dependenciesString);
+        System.out.printf("##teamcity[setParameter name='DEPENDENCIES' value='%s']%n", escapedTeamCityValues(dependenciesString));
+    }
+
+    private void assertValidFormat(List<VersionedComponent> components) {
+        String notValidComponents = components
+                .stream()
+                .filter(c -> !c.getVersion().matches(VERSION_FORMAT_PATTERN))
+                .map(c -> String.format("[ERROR] Version format not valid %s:%s", c.getName(), c.getVersion()))
+                .collect(Collectors.joining("\n"));
+
+        if (!notValidComponents.isEmpty()) {
+            throw new GradleException(notValidComponents);
+        }
+    }
+
+    private String escapedTeamCityValues(String value) {
+        return value.replace("|", "||")
+                .replace("'", "|'")
+                .replace("[", "|[")
+                .replace("]", "|]")
+                .replace("\n", "|n")
+                .replace("\r", "|r");
     }
 
     private void printProperties() {
@@ -126,7 +151,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
                 .getArtifactComponents()
                 .stream()
                 .map(ac -> {
-                    final VersionedComponent component = ac.getComponent();
+                    final org.octopusden.octopus.components.registry.core.dto.VersionedComponent component = ac.getComponent();
                     final String result;
                     if (component == null) {
                         getLogger().error("ExportDependenciesToTeamcityTask Component not found by {}", ac.getArtifact());
