@@ -107,7 +107,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
 
         getLogger().info("ExportDependenciesToTeamcityTask Found dependencies: {}", dependenciesString);
         getLogger().info(
-            "Please ensure all runtime dependencies are declared under supported configurations: {}",
+            "Please note, only dependencies from the following configurations will be registered by release management: {}",
             includedConfigurations.stream()
                     .filter(c -> !excludedConfigurations.contains(c))
                     .collect(Collectors.toList())
