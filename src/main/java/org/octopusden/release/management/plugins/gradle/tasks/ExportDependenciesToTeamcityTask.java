@@ -106,11 +106,11 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         }
 
         getLogger().info("ExportDependenciesToTeamcityTask Found dependencies: {}", dependenciesString);
-        getLogger().warn(
-            "If some dependencies are not detected, ensure all dependencies are declared under supported configurations: {}",
+        getLogger().info(
+            "Please ensure all runtime dependencies are declared under supported configurations: {}",
             includedConfigurations.stream()
-                .filter(c -> !excludedConfigurations.contains(c))
-                .collect(Collectors.toList())
+                    .filter(c -> !excludedConfigurations.contains(c))
+                    .collect(Collectors.toList())
         );
         System.out.printf("##teamcity[setParameter name='DEPENDENCIES' value='%s']%n", escapedTeamCityValues(dependenciesString));
     }
