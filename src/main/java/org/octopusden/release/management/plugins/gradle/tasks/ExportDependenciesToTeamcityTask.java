@@ -107,10 +107,11 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
 
         getLogger().info("ExportDependenciesToTeamcityTask Found dependencies: {}", dependenciesString);
         getLogger().info(
-            "Please note, only dependencies from the following configurations will be registered by release management: {}",
+            "Please note: only {}.* dependencies from {} will be registered by release management",
+            getComponentsRegistryServiceClient().getSupportedGroupIds().stream().findFirst().orElse(""),
             includedConfigurations.stream()
-                    .filter(c -> !excludedConfigurations.contains(c))
-                    .collect(Collectors.toList())
+                .filter(c -> !excludedConfigurations.contains(c))
+                .collect(Collectors.toList())
         );
         System.out.printf("##teamcity[setParameter name='DEPENDENCIES' value='%s']%n", escapedTeamCityValues(dependenciesString));
     }
