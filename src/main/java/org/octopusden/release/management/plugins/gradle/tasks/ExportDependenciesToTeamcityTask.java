@@ -106,13 +106,20 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         }
 
         getLogger().info("ExportDependenciesToTeamcityTask Found dependencies: {}", dependenciesString);
+        getLogger().info(
+            "Please note: only {}.* dependencies from {} will be registered by release management",
+            getComponentsRegistryServiceClient().getSupportedGroupIds().stream().findFirst().orElse(""),
+            includedConfigurations.stream()
+                .filter(c -> !excludedConfigurations.contains(c))
+                .collect(Collectors.toList())
+        );
         System.out.printf("##teamcity[setParameter name='DEPENDENCIES' value='%s']%n", escapedTeamCityValues(dependenciesString));
     }
 
     private void assertValidFormat(List<VersionedComponent> components) {
         String notValidComponents = components
                 .stream()
-                .filter(c -> !c.getVersion().matches(VERSION_FORMAT_PATTERN))
+                .filter(c -> c.getVersion() == null || !c.getVersion().matches(VERSION_FORMAT_PATTERN))
                 .map(c -> String.format("[ERROR] Version format not valid %s:%s", c.getName(), c.getVersion()))
                 .collect(Collectors.joining("\n"));
 
@@ -198,6 +205,12 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
 
     private Collection<ComponentArtifact> extractConfigurationDependencies(Configuration configuration, Collection<Predicate<ModuleComponentIdentifier>> filters) {
         getLogger().info("Extract Configuration Dependencies for '{}'", configuration.getName());
+
+        configuration.getAllDependencies().forEach(dependency -> {
+            if (dependency.getVersion() == null) {
+                getLogger().warn("Dependency {}:{} has no version declared, this may lead to conflicts with dependency constraints or unexpected resolution behavior", dependency.getGroup(), dependency.getName());
+            }
+        });
 
         final Configuration copiedConfiguration = configuration.copyRecursive();
         copiedConfiguration.setCanBeConsumed(true);
