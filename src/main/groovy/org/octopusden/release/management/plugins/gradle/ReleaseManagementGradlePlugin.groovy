@@ -240,7 +240,6 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
             }
         }
 
-        project.pluginManager.apply("com.platformlib.gradle-wrapper")
         project.rootProject.extensions[PLUGIN_STATE_PROPERTY] = "applied"
     }
 
