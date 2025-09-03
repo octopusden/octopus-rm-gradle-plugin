@@ -3,7 +3,6 @@ package org.octopusden.release.management.plugins.gradle
 import org.octopusden.release.management.plugins.gradle.publish.MavenPomDependenciesUtility
 import org.octopusden.release.management.plugins.gradle.tasks.AutoUpdateDependenciesDumpTask
 import org.octopusden.release.management.plugins.gradle.tasks.ExportDependenciesToTeamcityTask
-import com.platformlib.plugins.gradle.wrapper.task.DockerTask
 import org.gradle.BuildResult
 import org.gradle.api.Plugin
 import org.gradle.api.Project
