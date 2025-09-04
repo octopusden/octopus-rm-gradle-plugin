@@ -3,7 +3,6 @@ package org.octopusden.release.management.plugins.gradle
 import org.octopusden.release.management.plugins.gradle.publish.MavenPomDependenciesUtility
 import org.octopusden.release.management.plugins.gradle.tasks.AutoUpdateDependenciesDumpTask
 import org.octopusden.release.management.plugins.gradle.tasks.ExportDependenciesToTeamcityTask
-import com.platformlib.plugins.gradle.wrapper.task.DockerTask
 import org.gradle.BuildResult
 import org.gradle.api.Plugin
 import org.gradle.api.Project
@@ -26,7 +25,6 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
     private static final String ARTIFACTORY_DOCKER_PASSWORD_PROPERTY = 'ARTIFACTORY_DOCKER_PASSWORD'
     private static final String ARTIFACTORY_PUBLISH_CONFIGS_PROPERTY = 'com.jfrog.artifactory.publishConfigs'
     private static final String PLUGIN_STATE_PROPERTY = "releaseManagementConfigurationState"
-    private static final String ESCROW_PULL_IMAGES_PARAMETER_NAME = "escrow.build-phase"
     public static final String CYCLONE_DX_SKIP_PROPERTY = "cyclonedx.skip"
     public static final String COM_JFROG_ARTIFACTORY = 'com.jfrog.artifactory'
 
@@ -225,19 +223,6 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
 
         }
 
-        if (project.getRootProject().getGradle().getStartParameter().isDryRun() && "ASSEMBLE" == project.getRootProject().findProperty(ESCROW_PULL_IMAGES_PARAMETER_NAME)) {
-            LOGGER.debug("Configure to pull image for docker tasks")
-            project.getRootProject().getGradle().buildFinished { buildResult ->
-                def pulledImages = new HashSet<>()
-                project.getAllTasks(true).values().flatten().findAll {task -> task instanceof DockerTask}.forEach { task ->
-                    final DockerTask dockerTask = (DockerTask) task
-                    if (pulledImages.add(dockerTask.getImage())) {
-                        dockerTask.pullImage()
-                    }
-                }
-            }
-        }
-
         if (project.rootProject.hasProperty(CYCLONE_DX_SKIP_PROPERTY) && !Boolean.parseBoolean(project.rootProject.property(CYCLONE_DX_SKIP_PROPERTY).toString())) {
             project.allprojects { Project subProject ->
                 subProject.afterEvaluate {
@@ -255,7 +240,6 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
             }
         }
 
-        project.pluginManager.apply("com.platformlib.gradle-wrapper")
         project.rootProject.extensions[PLUGIN_STATE_PROPERTY] = "applied"
     }
 

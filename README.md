@@ -8,9 +8,8 @@ How does it work:
 1. Apply com.jfrog.artifactory plugin and configure it to work with Artifactory
 2. Add tasks for backward compatibility (openStagingRepository, closeStagingRepository and etc)
 3. Set project version && strategy of RM 2.0 dependency registration passed via command line options 'buildVersion' (String), 'includeAllDependencies' (Boolean)
-4. Apply plugin com.platformlib.gradle-wrapper and configure it (to support build in docker)
-5. Configure maven repositories for Escrow if needed
-6. Add task and extension for Release Management (releaseManagement, autoUpdateDependencies)
+4. Configure maven repositories for Escrow if needed
+5. Add task and extension for Release Management (releaseManagement, autoUpdateDependencies)
 
 Document publishing is a part of component build chain, module docs
 
