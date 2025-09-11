@@ -22,14 +22,14 @@ Staging (DEV) means publishing artifacts in development repository that is not i
 
 == Recommended versions
 
-Recommended Gradle versions to use are 6.X and 7.X
+Recommended Gradle versions to use are 8.14.x
 
 .Support status
 |===
 |Gradle version|Status
 
 |9.X
-|Coming soon ...
+|Not yet. Coming soon ...
 
 |8.X
 |Full support
