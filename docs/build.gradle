@@ -12,7 +12,6 @@ def dockerRegistry = project.findProperty('docker.registry') ?: 'registry.hub.do
 def golangCommons = project.findProperty('golangCommons') ?: 'com.example.golang.commons:commons:1.0.0:@zip'
 def repositoryUrl = project.findProperty('repositoryUrl') ?: 'https://example.com'
 def initGradleLink = project.findProperty('initGradleLink')
-    ?: { throw new IllegalArgumentException("`initGradleLink` property must be defined") }()
 
 repositories {
     jcenter()
@@ -47,6 +46,11 @@ def deQuoted(String value) {
 println(deQuoted(implLoggingCore))
 
 tasks.register('publishToWiki', DockerTask) {
+    doFirst {
+        if (initGradleLink == null) {
+            throw new IllegalArgumentException("`initGradleLink` property must be defined")
+        }
+    }
     image = "${project."docker.registry"}/confluencepublisher/confluence-publisher:0.22.0"
     dockerOptions = ['--network', 'host']
     bindMounts = ["${file('src/docs/asciidoc')}:/var/asciidoc-root-folder"]
