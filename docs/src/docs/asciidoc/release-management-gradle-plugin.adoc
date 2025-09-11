@@ -28,6 +28,9 @@ Recommended Gradle versions to use are 6.X and 7.X
 |===
 |Gradle version|Status
 
+|9.X
+|Coming soon ...
+
 |8.X
 |Full support
 
