@@ -11,7 +11,8 @@ def implLoggingCore = project.findProperty('implLoggingCore') ?: ''
 def dockerRegistry = project.findProperty('docker.registry') ?: 'registry.hub.docker.com'
 def golangCommons = project.findProperty('golangCommons') ?: 'com.example.golang.commons:commons:1.0.0:@zip'
 def repositoryUrl = project.findProperty('repositoryUrl') ?: 'https://example.com'
-def initGradleLink = project.findProperty('initGradleLink') ?: 'init.gradle'
+def initGradleLink = project.findProperty('initGradleLink')
+    ?: { throw new IllegalArgumentException("`initGradleLink` property must be defined") }()
 
 repositories {
     jcenter()
