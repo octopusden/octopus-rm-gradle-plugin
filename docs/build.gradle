@@ -11,6 +11,7 @@ def implLoggingCore = project.findProperty('implLoggingCore') ?: ''
 def dockerRegistry = project.findProperty('docker.registry') ?: 'registry.hub.docker.com'
 def golangCommons = project.findProperty('golangCommons') ?: 'com.example.golang.commons:commons:1.0.0:@zip'
 def repositoryUrl = project.findProperty('repositoryUrl') ?: 'https://example.com'
+def initGradleLink = project.findProperty('initGradleLink') ?: 'init.gradle'
 
 repositories {
     jcenter()
@@ -22,7 +23,8 @@ asciidoctorj {
                'impl-logging-core': implLoggingCore,
                'docker-registry': dockerRegistry,
                'golang-commons': golangCommons,
-               'repository-url': repositoryUrl
+               'repository-url': repositoryUrl,
+               'init-gradle-link': initGradleLink
 }
 
 asciidoctor {
@@ -62,7 +64,8 @@ tasks.register('publishToWiki', DockerTask) {
                                       "\"impl-logging-core\":\"${deQuoted(implLoggingCore).replaceAll('"','\\\\"')}\"," +
                                       "\"docker-registry\":\"$dockerRegistry\"," +
                                       "\"golang-commons\":\"$golangCommons\"," +
-                                      "\"repository-url\":\"$repositoryUrl\"}",
+                                      "\"repository-url\":\"$repositoryUrl\"," +
+                                      "\"init-gradle-link\":\"$initGradleLink\"}",
            "PUBLISHING_STRATEGY"    : "REPLACE_ANCESTOR",
            "CONVERT_ONLY"           : "false"
     ]

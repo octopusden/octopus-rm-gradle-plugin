@@ -55,7 +55,7 @@ There is no need to install Gradle separately.
 Always use the *Gradle Wrapper* provided in Gradle-based components.
 See the https://docs.gradle.org/current/userguide/gradle_wrapper.html[official Gradle Wrapper documentation] for details.
 
-Adjust init.gradle and gradle.properties if you need access to Artifactory
+Download link:{init-gradle-link}[init.gradle] and adjust gradle.properties if you need access to Artifactory to ~/.gradle directory
 +
 .gradle.properties
 ----
