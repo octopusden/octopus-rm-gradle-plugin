@@ -51,15 +51,21 @@ Gradle versions before 4.10 are not supported because of JFrog plugin requiremen
 
 == How to setup development environment
 
-Modern version of Gradle(6.X and later) should be installed manually. Please follow instruction from https://gradle.org/install/#manually[official gradle guide].
+There is no need to install Gradle separately.
+Always use the *Gradle Wrapper* provided in Gradle-based components.
+See the https://docs.gradle.org/current/userguide/gradle_wrapper.html[official Gradle Wrapper documentation] for details.
 
-Adjust init.gradle and gradle.properties if you need access to corporate Nexus/Artifactory
+Adjust init.gradle and gradle.properties if you need access to Artifactory
 +
 .gradle.properties
 ----
 NEXUS_USER=<your domain username>
-NEXUS_PASSWORD=<your domain password>
+NEXUS_PASSWORD=<Artifactory Identity Token>
 ----
+To generate an *Artifactory Identity Token*, log in to Artifactory, go to *Profile → Edit Profile*, and press *Generate an Identity Token*.
+
+.Artifactory – Generate Identity Token
+image::images/artifactory-token.png[Artifactory Identity Token screenshot, width=600, align=center]
 
 == Use Octopus Release Management gradle plugin
 
