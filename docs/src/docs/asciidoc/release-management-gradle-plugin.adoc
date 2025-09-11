@@ -65,7 +65,7 @@ NEXUS_PASSWORD=<Artifactory Identity Token>
 To generate an *Artifactory Identity Token*, log in to Artifactory, go to *Profile → Edit Profile*, and press *Generate an Identity Token*.
 
 .Artifactory – Generate Identity Token
-image::images/artifactory-token.png[Artifactory Identity Token screenshot, width=600, align=center]
+image::artifactory-token.png[Artifactory Identity Token screenshot, width=300, align=center]
 
 == Use Octopus Release Management gradle plugin
 
