@@ -65,7 +65,7 @@ To generate an *Artifactory Identity Token*, log in to Artifactory, go to *Profi
 image::artifactory-token.png[Artifactory Identity Token screenshot, width=300, align=center]
 
 === init.gradle and gradle.properties
-Download link:{init-gradle-link}[init.gradle] and adjust gradle.properties if you need access to Artifactory to ~/.gradle directory
+Download link:{init-gradle-link}[init.gradle] to ~/.gradle, and update gradle.properties if you need Artifactory access
 +
 .gradle.properties
 ----
