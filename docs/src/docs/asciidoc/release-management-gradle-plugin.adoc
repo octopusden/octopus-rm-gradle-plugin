@@ -59,7 +59,7 @@ Always use the *Gradle Wrapper* provided in Gradle-based components.
 See the https://docs.gradle.org/current/userguide/gradle_wrapper.html[official Gradle Wrapper documentation] for details.
 
 === Generate Artifactory Identity Token
-To generate an *Artifactory Identity Token*, log in to Artifactory, go to *Profile → Edit Profile*, and press *Generate an Identity Token*.
+To generate an *Artifactory Identity Token*, log in to {artifactory-url}[Artifactory], go to *Profile → Edit Profile*, and press *Generate an Identity Token*.
 
 .Artifactory – Generate Identity Token
 image::artifactory-token.png[Artifactory Identity Token screenshot, width=300, align=center]
@@ -399,7 +399,6 @@ dependencies {
     implementation 'org.springframework.security:spring-security-oauth2-jose'
     implementation 'org.springframework.security:spring-security-oauth2-client'
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
-    {impl-logging-core}
 }
 
 jar {
