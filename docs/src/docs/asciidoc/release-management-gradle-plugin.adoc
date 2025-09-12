@@ -61,9 +61,6 @@ See the https://docs.gradle.org/current/userguide/gradle_wrapper.html[official G
 === Generate Artifactory Identity Token
 To generate an *Artifactory Identity Token*, log in to {artifactory-url}[Artifactory], go to *Profile → Edit Profile*, and press *Generate an Identity Token*.
 
-.Artifactory – Generate Identity Token
-image::artifactory-token.png[Artifactory Identity Token screenshot, width=300, align=center]
-
 === init.gradle and gradle.properties
 Download link:{init-gradle-link}[init.gradle] to ~/.gradle, and update gradle.properties if you need Artifactory access
 +
