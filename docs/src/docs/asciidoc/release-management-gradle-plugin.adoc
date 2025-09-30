@@ -476,12 +476,6 @@ releaseManagement {
 
 The _'org.octopusden.octopus-release-management'_ Gradle plugin is able to create an aggregate of all direct and transitive dependencies of a project and generate a valid CycloneDX SBOM. CycloneDX is a lightweight software bill of materials (SBOM) specification designed for use in application security contexts and supply chain component analysis. For enable generation provide '-Pcyclonedx.skip=false'. File will appear in 'build/generated-resources/sbom' directory.
 
-== Use docker
-
-Supported from 1.0.255
-
-Supported platforms: Windows, RHEL 7/8
-
 == Configure project to update dependencies versions
 
 The project can be configured for auto updating used components' dependencies versions.
