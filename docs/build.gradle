@@ -12,10 +12,6 @@ def header = project.findProperty('header') ?: 'Octopus Release Management Gradl
 // Example: registry.hub.docker.com or your-company-registry.com
 def dockerRegistry = project.findProperty('docker.registry')
 
-// Golang commons dependency coordinates for go-based builds
-// Example: com.example.golang.commons:commons:1.0.0:@zip
-def golangCommons = project.findProperty('golangCommons')
-
 // Artifactory instance URL for authentication and artifact management
 // Example: https://artifactory.your-company.com
 def artifactoryUrl = project.findProperty('artifactoryUrl')
@@ -32,7 +28,6 @@ asciidoctorj {
     attributes 'header': header,
                'version-label': version,
                'docker-registry': dockerRegistry,
-               'golang-commons': golangCommons,
                'artifactory-url': artifactoryUrl,
                'init-gradle-link': initGradleLink
 }
@@ -51,9 +46,6 @@ tasks.register('publishToWiki', DockerTask) {
         }
         if (dockerRegistry == null) {
             throw new IllegalArgumentException("`docker.registry` property must be defined. Example: -Pdocker.registry=registry.hub.docker.com")
-        }
-        if (golangCommons == null) {
-            throw new IllegalArgumentException("`golangCommons` property must be defined. Example: -PgolangCommons=com.example.golang.commons:commons:1.0.0:@zip")
         }
         if (artifactoryUrl == null) {
             throw new IllegalArgumentException("`artifactoryUrl` property must be defined. Example: -PartifactoryUrl=https://artifactory.your-company.com")
@@ -75,10 +67,8 @@ tasks.register('publishToWiki', DockerTask) {
            "ATTRIBUTES"             : "{\"header\": \"$header\", " +
                                       "\"version-label\": \"$version\", " +
                                       "\"docker-registry\":\"$dockerRegistry\"," +
-                                      "\"golang-commons\":\"$golangCommons\"," +
                                       "\"artifactory-url\":\"$artifactoryUrl\"," +
                                       "\"init-gradle-link\":\"$initGradleLink\"}",
-           "PUBLISHING_STRATEGY"    : "REPLACE_ANCESTOR",
            "CONVERT_ONLY"           : "false"
     ]
 }
