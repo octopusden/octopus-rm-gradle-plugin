@@ -67,10 +67,6 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
         project.rootProject.task("closeStagingRepository") //Deprecated
         project.rootProject.task("releaseStagingRepository") //Deprecated
 
-        if (!project.rootProject.extensions.findByName("containerWrappedBuild")) {
-            project.rootProject.extensions.create("containerWrappedBuild", ContainerWrappedBuildExtension)
-        }
-
         if (!project.rootProject.extensions.findByName("autoUpdateDependencies")) {
             project.rootProject.extensions.create("autoUpdateDependencies", AutoUpdateDependenciesExtension)
             project.rootProject.task("dumpAutoUpdateDependencies", type: AutoUpdateDependenciesDumpTask)
@@ -122,28 +118,6 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
                 }
             }
 
-            ContainerWrappedBuildExtension containerWrappedBuildExtension = rootProject.getExtensions().findByType(ContainerWrappedBuildExtension.class)
-            if (containerWrappedBuildExtension.activateBy?.get()) {
-                LOGGER.info("Configure platformGradleWrapper extension")
-                def dockerEnvFilePath = Files.createTempFile('docker-container-env-', '.tmp')
-                //TODO Get artifactory credentials via method
-                dockerEnvFilePath.toFile().text = ARTIFACTORY_DEPLOYER_USERNAME_PROPERTY + "=" + (project.rootProject.findProperty(ARTIFACTORY_DEPLOYER_USERNAME_PROPERTY) ?: System.getProperty(ARTIFACTORY_DEPLOYER_USERNAME_PROPERTY, System.getenv(ARTIFACTORY_DEPLOYER_USERNAME_PROPERTY))) + "\n" + ARTIFACTORY_DEPLOYER_PASSWORD_PROPERTY + "=" + (project.rootProject.findProperty(ARTIFACTORY_DEPLOYER_PASSWORD_PROPERTY) ?: System.getProperty(ARTIFACTORY_DEPLOYER_PASSWORD_PROPERTY, System.getenv(ARTIFACTORY_DEPLOYER_PASSWORD_PROPERTY)))
-                project.rootProject.platformGradleWrapper {
-                        docker {
-                            octopus {
-                                image = containerWrappedBuildExtension.dockerImage
-                                bindLocalM2Repository()
-                                mapProjectDir()
-                                if (containerWrappedBuildExtension.useCurrentJava) {
-                                    useCurrentJava = containerWrappedBuildExtension.useCurrentJava
-                                }
-                                dockerOptions.addAll(containerWrappedBuildExtension.dockerOptions + ["--env-file", dockerEnvFilePath.toString()])
-                                activateBy = { true }
-                                usePodman = System.getenv().getOrDefault("OS_TYPE", "NO").matches("(RHEL8.*)|(OL8.*)")
-                            }
-                        }
-                }
-            }
             //To validate auto-update dependencies configuration
             (rootProject.tasks.findByPath("dumpAutoUpdateDependencies") as AutoUpdateDependenciesDumpTask).getAutoUpdateDependenciesConfiguration()
 
