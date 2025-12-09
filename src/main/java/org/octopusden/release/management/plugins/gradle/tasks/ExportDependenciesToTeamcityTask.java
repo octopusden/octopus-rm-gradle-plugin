@@ -1,5 +1,7 @@
 package org.octopusden.release.management.plugins.gradle.tasks;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -13,6 +15,9 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
@@ -45,6 +50,8 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
     private final boolean includeAllDependencies = Optional.ofNullable(getProject().findProperty("includeAllDependencies"))
             .map(v -> Boolean.parseBoolean(v.toString()))
             .orElse(false);
+
+    private final String outputFile = Objects.toString(getProject().findProperty("outputFile"), "export-dependencies-report.json");
 
     private ComponentsRegistryServiceClient componentsRegistryServiceClient;
 
@@ -114,6 +121,24 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
                 .collect(Collectors.toList())
         );
         System.out.printf("##teamcity[setParameter name='DEPENDENCIES' value='%s']%n", escapedTeamCityValues(dependenciesString));
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            List<ExportDependencyDTO> exportDependencyList = dependenciesString.isEmpty()
+                    ? Collections.emptyList()
+                    : Arrays.stream(dependenciesString.split(","))
+                    .map(entry -> entry.split(":", 2))
+                    .map(parts -> new ExportDependencyDTO(parts[0], parts[1]))
+                    .collect(Collectors.toList());
+            File buildDir = getProject().getBuildDir();
+            if (!buildDir.exists() && !buildDir.mkdirs()) {
+                throw new GradleException("Failed to create build directory: " + buildDir.getAbsolutePath());
+            }
+            File reportFile = new File(buildDir, outputFile);
+            objectMapper.enable(SerializationFeature.INDENT_OUTPUT).writeValue(reportFile, exportDependencyList);
+            getLogger().info("ExportDependenciesToTeamcityTask dependencies written to {}", reportFile.getAbsolutePath());
+        } catch (IOException e) {
+            throw new GradleException("Failed to write dependencies to " + outputFile, e);
+        }
     }
 
     private void assertValidFormat(List<VersionedComponent> components) {
@@ -291,4 +316,16 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         };
     }
 
+    private static class ExportDependencyDTO {
+        @JsonProperty
+        private final String name;
+
+        @JsonProperty
+        private final String version;
+
+        public ExportDependencyDTO(String name, String version) {
+            this.name = name;
+            this.version = version;
+        }
+    }
 }
