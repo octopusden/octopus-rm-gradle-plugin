@@ -51,7 +51,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
             .map(v -> Boolean.parseBoolean(v.toString()))
             .orElse(false);
 
-    private final String outputFile = Objects.toString(getProject().findProperty("outputFile"), "export-dependencies-report.json");
+    private final String outputFile = Objects.toString(getProject().findProperty("outputFile"), "components-dependencies.json");
 
     private ComponentsRegistryServiceClient componentsRegistryServiceClient;
 
