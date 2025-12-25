@@ -1,5 +1,7 @@
 package org.octopusden.release.management.plugins.gradle
 
+import com.fasterxml.jackson.core.type.TypeReference
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.octopusden.f1.automation.artifactory.artifactory
 import com.platformlib.process.factory.ProcessBuilders
 import com.platformlib.process.local.builder.LocalProcessBuilder
@@ -14,6 +16,7 @@ import org.junit.jupiter.params.provider.Arguments
 import org.junit.jupiter.params.provider.MethodSource
 import org.slf4j.LoggerFactory
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.*
 import java.util.stream.Stream
@@ -176,13 +179,7 @@ class ReleaseManagementPluginTest {
             .toCompletableFuture()
             .get()
         assertEquals(0, processInstance.exitCode, "Gradle execution failure")
-        val dependencies =
-            stdout.find { line -> line.startsWith("##teamcity[setParameter name='DEPENDENCIES' value='") }
-                ?.split(Regex("value='"))
-                ?.get(1)
-                ?.replace("']", "")
-                ?.split(Regex("\\s*,\\s*"))
-                ?: emptyList()
+        val dependencies = readDependenciesFromFile(projectPath, gradleCommandAdnArguments)
         assertThat(dependencies).containsExactlyInAnyOrderElementsOf(expectedComponents)
     }
 
@@ -307,9 +304,8 @@ class ReleaseManagementPluginTest {
             .toCompletableFuture()
             .get()
         assertEquals(0, processInstance.exitCode, "Gradle execution failure")
-        assertThat(stdout).contains(
-            "##teamcity[setParameter name='DEPENDENCIES' value='deployer:1.1,deployerDSL:1.2']"
-        )
+        val dependencies = readDependenciesFromFile(projectPath)
+        assertThat(dependencies).containsExactlyInAnyOrder("deployer:1.1", "deployerDSL:1.2")
     }
 
 
@@ -373,5 +369,23 @@ class ReleaseManagementPluginTest {
             .get()
         assertEquals(1, processInstance.exitCode, "Gradle execution failure")
         assertThat(stdout).contains("[ERROR] Version format not valid ReleaseManagementService:1.0-SNAPSHOT")
+    }
+
+    private fun readDependenciesFromFile(projectPath: Path, gradleArgs: List<String> = emptyList()): List<String> {
+        val pIndex = gradleArgs.indexOf("-p")
+        val currentPath = if (pIndex >= 0 && pIndex + 1 < gradleArgs.size) projectPath.resolve(gradleArgs[pIndex + 1]) else projectPath
+        val reportFile = currentPath.resolve("build/components-dependencies.json")
+        if (!Files.exists(reportFile)) return emptyList()
+        val mapper = ObjectMapper()
+        val items: List<Map<String, Any?>> = mapper.readValue(reportFile.toFile(), object : TypeReference<List<Map<String, Any?>>>() {})
+        return items.mapNotNull {
+            val name = it["name"]?.toString()
+            val version = it["version"]?.toString()
+            if (!name.isNullOrBlank() && !version.isNullOrBlank()) {
+                "$name:$version"
+            } else {
+                null
+            }
+        }
     }
 }
