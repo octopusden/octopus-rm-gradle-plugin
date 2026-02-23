@@ -18,7 +18,6 @@ import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.nio.file.StandardCopyOption
 import java.util.*
 import java.util.stream.Stream
 import kotlin.IllegalStateException
@@ -348,20 +347,20 @@ class ReleaseManagementPluginTest {
             ?: throw IllegalStateException("The __RELEASE_MANAGEMENT_VERSION__ environment variable is not set")
         val buildVersion: String = System.getenv()["__BUILD_VERSION__"]
             ?: throw IllegalStateException("The __BUILD_VERSION__ environment variable is not set")
+        val projectPath = Paths.get(ReleaseManagementPluginTest::class.java.getResource("/rm-kotlin-config")!!.toURI())
 
         val tempDir = Files.createTempDirectory("rm-export-test")
+        val nestedDir = tempDir.resolve("dependency/another-folder")
+        val absoluteOutputFile = nestedDir.resolve("custom-output.json")
+
+        // Verify nested directories do not exist before the build
+        assertThat(nestedDir).doesNotExist()
+
+        // Clean up default output file from previous test runs on the shared project directory
+        val defaultFile = projectPath.resolve("build/components-dependencies.json")
+        Files.deleteIfExists(defaultFile)
+
         try {
-            // Copy the fixture into an isolated temp directory to avoid shared state with other tests
-            val sourceProject = Paths.get(ReleaseManagementPluginTest::class.java.getResource("/rm-kotlin-config")!!.toURI())
-            val projectPath = tempDir.resolve("project")
-            copyGradleProjectDirectory(sourceProject, projectPath)
-
-            val outputDir = tempDir.resolve("output/dependency/another-folder")
-            val absoluteOutputFile = outputDir.resolve("custom-output.json")
-
-            // Verify nested output directories do not exist before the build
-            assertThat(outputDir).doesNotExist()
-
             val processBuilder: LocalProcessBuilder = ProcessBuilders.newProcessBuilder(LocalProcessSpec.LOCAL_COMMAND)
             val stdout = ArrayList<String>()
             val processInstance = processBuilder
@@ -383,13 +382,12 @@ class ReleaseManagementPluginTest {
             assertEquals(0, processInstance.exitCode, "Gradle execution failure")
 
             // Verify nested directories were created by the plugin
-            assertThat(outputDir).exists().isDirectory()
+            assertThat(nestedDir).exists().isDirectory()
             assertThat(absoluteOutputFile).exists()
             val dependencies = readDependenciesFromAbsoluteFile(absoluteOutputFile)
             assertThat(dependencies).containsExactlyInAnyOrder("deployer:1.1", "deployerDSL:1.2")
 
             // Verify file was NOT written to the default build directory location
-            val defaultFile = projectPath.resolve("build/components-dependencies.json")
             assertThat(defaultFile).doesNotExist()
         } finally {
             Files.walk(tempDir).use { stream ->
@@ -449,24 +447,6 @@ class ReleaseManagementPluginTest {
             } else {
                 null
             }
-        }
-    }
-
-    private fun copyGradleProjectDirectory(source: Path, target: Path) {
-        Files.walk(source).use { stream ->
-            stream.filter { src ->
-                    // Exclude build artifacts and Gradle cache from the copy
-                    val relative = source.relativize(src).toString()
-                    !relative.startsWith("build") && !relative.startsWith(".gradle")
-                }
-                .forEach { src ->
-                    val dest = target.resolve(source.relativize(src))
-                    if (Files.isDirectory(src)) {
-                        Files.createDirectories(dest)
-                    } else {
-                        Files.copy(src, dest, StandardCopyOption.COPY_ATTRIBUTES)
-                    }
-                }
         }
     }
 }
