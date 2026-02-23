@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.nio.file.StandardCopyOption
 import java.util.*
 import java.util.stream.Stream
 import kotlin.IllegalStateException
@@ -353,7 +354,7 @@ class ReleaseManagementPluginTest {
             // Copy the fixture into an isolated temp directory to avoid shared state with other tests
             val sourceProject = Paths.get(ReleaseManagementPluginTest::class.java.getResource("/rm-kotlin-config")!!.toURI())
             val projectPath = tempDir.resolve("project")
-            copyDirectory(sourceProject, projectPath)
+            copyGradleProjectDirectory(sourceProject, projectPath)
 
             val outputDir = tempDir.resolve("output/dependency/another-folder")
             val absoluteOutputFile = outputDir.resolve("custom-output.json")
@@ -391,9 +392,10 @@ class ReleaseManagementPluginTest {
             val defaultFile = projectPath.resolve("build/components-dependencies.json")
             assertThat(defaultFile).doesNotExist()
         } finally {
-            Files.walk(tempDir)
-                .sorted(Comparator.reverseOrder())
-                .forEach(Files::delete)
+            Files.walk(tempDir).use { stream ->
+                stream.sorted(Comparator.reverseOrder())
+                    .forEach(Files::delete)
+            }
         }
     }
 
@@ -450,14 +452,21 @@ class ReleaseManagementPluginTest {
         }
     }
 
-    private fun copyDirectory(source: Path, target: Path) {
-        Files.walk(source).forEach { src ->
-            val dest = target.resolve(source.relativize(src))
-            if (Files.isDirectory(src)) {
-                Files.createDirectories(dest)
-            } else {
-                Files.copy(src, dest)
-            }
+    private fun copyGradleProjectDirectory(source: Path, target: Path) {
+        Files.walk(source).use { stream ->
+            stream.filter { src ->
+                    // Exclude build artifacts and Gradle cache from the copy
+                    val relative = source.relativize(src).toString()
+                    !relative.startsWith("build") && !relative.startsWith(".gradle")
+                }
+                .forEach { src ->
+                    val dest = target.resolve(source.relativize(src))
+                    if (Files.isDirectory(src)) {
+                        Files.createDirectories(dest)
+                    } else {
+                        Files.copy(src, dest, StandardCopyOption.COPY_ATTRIBUTES)
+                    }
+                }
         }
     }
 }
