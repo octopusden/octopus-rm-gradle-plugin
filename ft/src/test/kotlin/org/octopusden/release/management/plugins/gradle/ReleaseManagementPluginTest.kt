@@ -390,10 +390,9 @@ class ReleaseManagementPluginTest {
             // Verify file was NOT written to the default build directory location
             assertThat(defaultFile).doesNotExist()
         } finally {
-            Files.deleteIfExists(absoluteOutputFile)
-            Files.deleteIfExists(nestedDir)
-            Files.deleteIfExists(tempDir.resolve("dependency"))
-            Files.deleteIfExists(tempDir)
+            Files.walk(tempDir)
+                .sorted(Comparator.reverseOrder())
+                .forEach(Files::delete)
         }
     }
 

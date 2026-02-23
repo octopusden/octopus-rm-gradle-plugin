@@ -129,8 +129,8 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
     }
 
     private void printProperties() {
-        getLogger().info("ExportDependenciesToTeamcityTask Parameters: excludedConfigurations={}, includeAllDependencies={}, componentRegistryServiceUrl={}",
-                excludedConfigurations, includeAllDependencies, componentsRegistryServiceUrl);
+        getLogger().info("ExportDependenciesToTeamcityTask Parameters: excludedConfigurations={}, includeAllDependencies={}, outputFile={}, componentRegistryServiceUrl={}",
+                excludedConfigurations, includeAllDependencies, outputFile, componentsRegistryServiceUrl);
     }
 
     @NotNull
@@ -289,10 +289,10 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
             if (outputFilePath.isAbsolute()) {
                 reportFile = outputFilePath;
             } else {
-                reportFile = new File(getProject().getBuildDir(), outputFile);
+                reportFile = new File(getProject().getLayout().getBuildDirectory().get().getAsFile(), outputFile);
             }
             File parentDir = reportFile.getParentFile();
-            if (parentDir != null && !parentDir.exists() && !parentDir.mkdirs()) {
+            if (parentDir != null && !parentDir.mkdirs() && !parentDir.isDirectory()) {
                 throw new GradleException("Failed to create output directory: " + parentDir.getAbsolutePath());
             }
             ObjectMapper objectMapper = new ObjectMapper();
