@@ -284,11 +284,17 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
 
     private void exportDependenciesToFile(List<ExportDependencyDTO> dependencies) {
         try {
-            File buildDir = getProject().getBuildDir();
-            if (!buildDir.exists() && !buildDir.mkdirs()) {
-                throw new GradleException("Failed to create build directory: " + buildDir.getAbsolutePath());
+            File outputFilePath = new File(outputFile);
+            final File reportFile;
+            if (outputFilePath.isAbsolute()) {
+                reportFile = outputFilePath;
+            } else {
+                reportFile = new File(getProject().getBuildDir(), outputFile);
             }
-            File reportFile = new File(buildDir, outputFile);
+            File parentDir = reportFile.getParentFile();
+            if (parentDir != null && !parentDir.exists() && !parentDir.mkdirs()) {
+                throw new GradleException("Failed to create output directory: " + parentDir.getAbsolutePath());
+            }
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.enable(SerializationFeature.INDENT_OUTPUT).writeValue(reportFile, dependencies);
             getLogger().info("ExportDependenciesToTeamcityTask dependencies written to {}", reportFile.getAbsolutePath());
