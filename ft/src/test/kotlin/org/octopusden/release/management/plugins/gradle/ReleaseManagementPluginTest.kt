@@ -390,9 +390,13 @@ class ReleaseManagementPluginTest {
             // Verify file was NOT written to the default build directory location
             assertThat(defaultFile).doesNotExist()
         } finally {
-            Files.walk(tempDir).use { stream ->
-                stream.sorted(Comparator.reverseOrder())
-                    .forEach(Files::delete)
+            try {
+                Files.walk(tempDir).use { stream ->
+                    stream.sorted(Comparator.reverseOrder())
+                        .forEach(Files::delete)
+                }
+            } catch (e: Exception) {
+                logger.warn("Failed to clean up temporary directory $tempDir", e)
             }
         }
     }
