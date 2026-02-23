@@ -356,6 +356,10 @@ class ReleaseManagementPluginTest {
         // Verify nested directories do not exist before the build
         assertThat(nestedDir).doesNotExist()
 
+        // Clean up default output file from previous test runs on the shared project directory
+        val defaultFile = projectPath.resolve("build/components-dependencies.json")
+        Files.deleteIfExists(defaultFile)
+
         try {
             val processBuilder: LocalProcessBuilder = ProcessBuilders.newProcessBuilder(LocalProcessSpec.LOCAL_COMMAND)
             val stdout = ArrayList<String>()
@@ -384,7 +388,6 @@ class ReleaseManagementPluginTest {
             assertThat(dependencies).containsExactlyInAnyOrder("deployer:1.1", "deployerDSL:1.2")
 
             // Verify file was NOT written to the default build directory location
-            val defaultFile = projectPath.resolve("build/components-dependencies.json")
             assertThat(defaultFile).doesNotExist()
         } finally {
             Files.deleteIfExists(absoluteOutputFile)
