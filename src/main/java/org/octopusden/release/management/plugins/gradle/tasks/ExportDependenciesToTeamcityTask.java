@@ -129,8 +129,8 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
     }
 
     private void printProperties() {
-        getLogger().info("ExportDependenciesToTeamcityTask Parameters: excludedConfigurations={}, includeAllDependencies={}, componentRegistryServiceUrl={}",
-                excludedConfigurations, includeAllDependencies, componentsRegistryServiceUrl);
+        getLogger().info("ExportDependenciesToTeamcityTask Parameters: excludedConfigurations={}, includeAllDependencies={}, outputFile={}, componentRegistryServiceUrl={}",
+                excludedConfigurations, includeAllDependencies, outputFile, componentsRegistryServiceUrl);
     }
 
     @NotNull
@@ -284,11 +284,17 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
 
     private void exportDependenciesToFile(List<ExportDependencyDTO> dependencies) {
         try {
-            File buildDir = getProject().getBuildDir();
-            if (!buildDir.exists() && !buildDir.mkdirs()) {
-                throw new GradleException("Failed to create build directory: " + buildDir.getAbsolutePath());
+            File outputFilePath = new File(outputFile);
+            final File reportFile;
+            if (outputFilePath.isAbsolute()) {
+                reportFile = outputFilePath;
+            } else {
+                reportFile = new File(getProject().getLayout().getBuildDirectory().get().getAsFile(), outputFile);
             }
-            File reportFile = new File(buildDir, outputFile);
+            File parentDir = reportFile.getParentFile();
+            if (parentDir != null && !parentDir.mkdirs() && !parentDir.isDirectory()) {
+                throw new GradleException("Failed to create output directory: " + parentDir.getAbsolutePath());
+            }
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.enable(SerializationFeature.INDENT_OUTPUT).writeValue(reportFile, dependencies);
             getLogger().info("ExportDependenciesToTeamcityTask dependencies written to {}", reportFile.getAbsolutePath());

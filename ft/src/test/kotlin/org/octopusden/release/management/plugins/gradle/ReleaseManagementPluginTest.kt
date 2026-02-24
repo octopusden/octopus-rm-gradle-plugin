@@ -341,6 +341,67 @@ class ReleaseManagementPluginTest {
     }
 
     @Test
+    @DisplayName("Test outputFile with absolute path")
+    fun testOutputFileAbsolutePath() {
+        val releaseManagementVersion: String = System.getenv()["__RELEASE_MANAGEMENT_VERSION__"]
+            ?: throw IllegalStateException("The __RELEASE_MANAGEMENT_VERSION__ environment variable is not set")
+        val buildVersion: String = System.getenv()["__BUILD_VERSION__"]
+            ?: throw IllegalStateException("The __BUILD_VERSION__ environment variable is not set")
+        val projectPath = Paths.get(ReleaseManagementPluginTest::class.java.getResource("/rm-kotlin-config")!!.toURI())
+
+        val tempDir = Files.createTempDirectory("rm-export-test")
+        val nestedDir = tempDir.resolve("dependency/another-folder")
+        val absoluteOutputFile = nestedDir.resolve("custom-output.json")
+
+        // Verify nested directories do not exist before the build
+        assertThat(nestedDir).doesNotExist()
+
+        // Clean up default output file from previous test runs on the shared project directory
+        val defaultFile = projectPath.resolve("build/components-dependencies.json")
+        Files.deleteIfExists(defaultFile)
+
+        try {
+            val processBuilder: LocalProcessBuilder = ProcessBuilders.newProcessBuilder(LocalProcessSpec.LOCAL_COMMAND)
+            val stdout = ArrayList<String>()
+            val processInstance = processBuilder
+                .envVariables(mapOf("JAVA_HOME" to System.getProperty("java.home")))
+                .logger { it.logger(logger) }
+                .mapBatExtension()
+                .mapCmdExtension()
+                .workDirectory(projectPath)
+                .stdOutConsumer(stdout::add)
+                .commandAndArguments("$projectPath/gradlew")
+                .build()
+                .execute(
+                    "-Poctopus-release-management.version=$releaseManagementVersion",
+                    "-PbuildVersion=$buildVersion",
+                    "-PoutputFile=${absoluteOutputFile.toAbsolutePath()}",
+                )
+                .toCompletableFuture()
+                .get()
+            assertEquals(0, processInstance.exitCode, "Gradle execution failure")
+
+            // Verify nested directories were created by the plugin
+            assertThat(nestedDir).exists().isDirectory()
+            assertThat(absoluteOutputFile).exists()
+            val dependencies = readDependenciesFromAbsoluteFile(absoluteOutputFile)
+            assertThat(dependencies).containsExactlyInAnyOrder("deployer:1.1", "deployerDSL:1.2")
+
+            // Verify file was NOT written to the default build directory location
+            assertThat(defaultFile).doesNotExist()
+        } finally {
+            try {
+                Files.walk(tempDir).use { stream ->
+                    stream.sorted(Comparator.reverseOrder())
+                        .forEach(Files::delete)
+                }
+            } catch (e: Exception) {
+                logger.warn("Failed to clean up temporary directory $tempDir", e)
+            }
+        }
+    }
+
+    @Test
     @DisplayName("Check dependencies test")
     fun testCheckDependencies() {
         val releaseManagementVersion: String = System.getenv()["__RELEASE_MANAGEMENT_VERSION__"]
@@ -375,6 +436,10 @@ class ReleaseManagementPluginTest {
         val pIndex = gradleArgs.indexOf("-p")
         val currentPath = if (pIndex >= 0 && pIndex + 1 < gradleArgs.size) projectPath.resolve(gradleArgs[pIndex + 1]) else projectPath
         val reportFile = currentPath.resolve("build/components-dependencies.json")
+        return readDependenciesFromAbsoluteFile(reportFile)
+    }
+
+    private fun readDependenciesFromAbsoluteFile(reportFile: Path): List<String> {
         if (!Files.exists(reportFile)) return emptyList()
         val mapper = ObjectMapper()
         val items: List<Map<String, Any?>> = mapper.readValue(reportFile.toFile(), object : TypeReference<List<Map<String, Any?>>>() {})
