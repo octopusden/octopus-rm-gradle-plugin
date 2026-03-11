@@ -484,5 +484,7 @@ class ReleaseManagementPluginTest {
             .toCompletableFuture()
             .get()
         assertEquals(0, processInstance.exitCode, "Gradle execution failure")
+        val dependencies = readDependenciesFromFile(projectPath)
+        assertThat(dependencies).isEmpty()
     }
 }
