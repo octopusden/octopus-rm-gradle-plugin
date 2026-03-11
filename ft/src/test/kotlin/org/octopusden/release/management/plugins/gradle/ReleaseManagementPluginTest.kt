@@ -7,8 +7,7 @@ import com.platformlib.process.factory.ProcessBuilders
 import com.platformlib.process.local.builder.LocalProcessBuilder
 import com.platformlib.process.local.specification.LocalProcessSpec
 import org.assertj.core.api.Assertions.assertThat
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -452,5 +451,38 @@ class ReleaseManagementPluginTest {
                 null
             }
         }
+    }
+
+    /**
+     * Check if the component registry service has a conflict with build dependencies
+     * Exception: Conflicting property-based creators: already had explicit creator
+     */
+    @Test
+    @DisplayName("Test jackson conflict on call component registry service.")
+    fun testJacksonConflict() {
+        val releaseManagementVersion: String = System.getenv()["__RELEASE_MANAGEMENT_VERSION__"]
+            ?: throw IllegalStateException("The __RELEASE_MANAGEMENT_VERSION__ environment variable is not set")
+        val buildVersion: String = System.getenv()["__BUILD_VERSION__"]
+            ?: throw IllegalStateException("The __BUILD_VERSION__ environment variable is not set")
+        val projectPath = Paths.get(ReleaseManagementPluginTest::class.java.getResource("/jackson-conflict")!!.toURI())
+        val processBuilder: LocalProcessBuilder = ProcessBuilders.newProcessBuilder(LocalProcessSpec.LOCAL_COMMAND)
+        val stdout = ArrayList<String>()
+        val processInstance = processBuilder
+            .envVariables(mapOf("JAVA_HOME" to System.getProperty("java.home")))
+            .logger { it.logger(logger) }
+            .mapBatExtension()
+            .mapCmdExtension()
+            .workDirectory(projectPath)
+            .stdOutConsumer(stdout::add)
+            .commandAndArguments("$projectPath/gradlew")
+            .build()
+            .execute(
+                "-Poctopus-release-management.version=$releaseManagementVersion",
+                "-PbuildVersion=$buildVersion",
+                "-PincludeAllDependencies=true",
+            )
+            .toCompletableFuture()
+            .get()
+        assertEquals(0, processInstance.exitCode, "Gradle execution failure")
     }
 }
