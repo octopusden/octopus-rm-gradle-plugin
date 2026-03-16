@@ -299,7 +299,7 @@ class ReleaseManagementPluginTest {
             .build()
             .execute(
                 "-Poctopus-release-management.version=$releaseManagementVersion",
-                "-PbuildVersion=$buildVersion", "-s"
+                "-PbuildVersion=$buildVersion",
             )
             .toCompletableFuture()
             .get()
@@ -481,7 +481,6 @@ class ReleaseManagementPluginTest {
                 "-Poctopus-release-management.version=$releaseManagementVersion",
                 "-PbuildVersion=$buildVersion",
                 "-PincludeAllDependencies=true",
-                "--info", "--debug",
             )
             .toCompletableFuture()
             .get()
