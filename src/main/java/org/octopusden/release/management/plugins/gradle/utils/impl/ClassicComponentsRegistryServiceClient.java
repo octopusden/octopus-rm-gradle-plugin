@@ -53,6 +53,8 @@ public class ClassicComponentsRegistryServiceClient implements ComponentsRegistr
                 .encoder(new JacksonEncoder(objectMapper))
                 .decoder(new JacksonDecoder(objectMapper))
                 .errorDecoder(new ComponentsRegistryServiceErrorDecoder(objectMapper))
+                .encoder(new JacksonEncoder())
+                .decoder(new JacksonDecoder())
                 .logger(new Slf4jLogger(ComponentsRegistryServiceClient.class))
                 .logLevel(Logger.Level.FULL)
                 .target(ComponentsRegistryServiceClient.class, apiUrl);
