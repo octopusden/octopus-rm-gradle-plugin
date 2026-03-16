@@ -475,6 +475,7 @@ class ReleaseManagementPluginTest {
             .mapCmdExtension()
             .workDirectory(projectPath)
             .stdOutConsumer(stdout::add)
+            .stdErrConsumer(stdout::add)
             .commandAndArguments("$projectPath/gradlew")
             .build()
             .execute(
@@ -485,6 +486,7 @@ class ReleaseManagementPluginTest {
             .toCompletableFuture()
             .get()
         assertEquals(0, processInstance.exitCode, "Gradle execution failure")
+        assertThat(stdout.joinToString("\n")).doesNotContain("Conflicting property-based creators")
         val dependencies = readDependenciesFromFile(projectPath)
         assertThat(dependencies).isEmpty()
     }

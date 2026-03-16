@@ -3,7 +3,6 @@ plugins {
     id 'signing'
     id("io.github.gradle-nexus.publish-plugin")
     id 'groovy'
-    id 'java'
     id 'java-gradle-plugin'
     id 'com.jfrog.artifactory'
 }
@@ -28,8 +27,8 @@ dependencies {
     implementation group: 'org.jfrog.buildinfo', name: 'build-info-extractor-gradle', version: project['jfrog-artifactory.version']
     implementation group: 'org.cyclonedx', name: 'cyclonedx-gradle-plugin', version: project['cyclonedx.version']
     implementation platform("com.fasterxml.jackson:jackson-bom:${project['jackson.version']}")
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core', version: project['jackson.version']
-    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: project['jackson.version']
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-core'
+    implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
     implementation group: 'io.github.openfeign', name: 'feign-core', version: project['feign.version']
     implementation group: 'io.github.openfeign', name: 'feign-jackson', version: project['feign.version']
     implementation group: 'io.github.openfeign', name: 'feign-httpclient', version: project['feign.version']

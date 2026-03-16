@@ -43,4 +43,9 @@ public class ArtifactDependency {
                 Objects.equals(name, that.name) &&
                 Objects.equals(version, that.version);
     }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(group, name, version);
+    }
 }
