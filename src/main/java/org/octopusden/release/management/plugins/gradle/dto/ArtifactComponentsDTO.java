@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Collection;
+import java.util.Objects;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ArtifactComponentsDTO {
@@ -23,12 +24,12 @@ public class ArtifactComponentsDTO {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ArtifactComponentsDTO that = (ArtifactComponentsDTO) o;
-        return artifactComponents != null ? artifactComponents.equals(that.artifactComponents) : that.artifactComponents == null;
+        return Objects.equals(artifactComponents, that.artifactComponents);
     }
 
     @Override
     public int hashCode() {
-        return artifactComponents != null ? artifactComponents.hashCode() : 0;
+        return Objects.hashCode(artifactComponents);
     }
 
     @Override

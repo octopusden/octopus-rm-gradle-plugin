@@ -48,4 +48,9 @@ public class ArtifactDependency {
     public int hashCode() {
         return Objects.hash(group, name, version);
     }
+
+    @Override
+    public String toString() {
+        return "ArtifactDependency{group=" + this.group + ", name=" + this.name + ", version=" + this.version + '}';
+    }
 }
