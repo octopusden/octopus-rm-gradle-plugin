@@ -25,7 +25,6 @@ repositories {
 
 dependencies {
     implementation group: 'org.jfrog.buildinfo', name: 'build-info-extractor-gradle', version: project['jfrog-artifactory.version']
-    // TODO: Set real client version
     implementation group: 'org.octopusden.octopus.infrastructure', name: 'components-registry-service-light-client', version: '2.0.83'
     implementation platform("com.fasterxml.jackson:jackson-bom:${project['jackson.version']}")
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
