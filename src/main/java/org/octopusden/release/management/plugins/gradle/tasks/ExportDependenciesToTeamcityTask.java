@@ -27,11 +27,10 @@ import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
 import org.jetbrains.annotations.NotNull;
-import org.octopusden.release.management.plugins.gradle.utils.ComponentsRegistryServiceClient;
-import org.octopusden.release.management.plugins.gradle.utils.impl.ClassicComponentsRegistryServiceClient;
-import org.octopusden.release.management.plugins.gradle.utils.impl.ClassicComponentsRegistryServiceClientUrlProvider;
-import org.octopusden.release.management.plugins.gradle.dto.ArtifactDependency;
-
+import org.octopusden.octopus.components.registry.light.client.ComponentsRegistryServiceClient;
+import org.octopusden.octopus.components.registry.light.client.impl.ClassicComponentsRegistryServiceClient;
+import org.octopusden.octopus.components.registry.light.client.impl.ClassicComponentsRegistryServiceClientUrlProvider;
+import org.octopusden.octopus.components.registry.light.client.dto.ArtifactDependency;
 import org.octopusden.release.management.plugins.gradle.ReleaseDependenciesConfiguration;
 import org.octopusden.release.management.plugins.gradle.ReleaseManagementDependenciesExtension;
 import org.octopusden.release.management.plugins.gradle.dto.ComponentArtifact;
@@ -150,7 +149,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
                 .getArtifactComponents()
                 .stream()
                 .map(ac -> {
-                    final VersionedComponent component = ac.getComponent();
+                    final org.octopusden.octopus.components.registry.light.client.dto.VersionedComponent component = ac.getComponent();
                     final ExportDependencyDTO result;
                     if (component == null) {
                         getLogger().error("ExportDependenciesToTeamcityTask Component not found by {}", ac.getArtifact());
