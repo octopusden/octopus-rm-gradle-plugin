@@ -215,7 +215,7 @@ class ReleaseManagementPluginTest {
     @Test
     fun testDependencyTree() {
         val releaseManagementVersion: String = System.getenv()["__RELEASE_MANAGEMENT_VERSION__"] ?: throw IllegalStateException("The __RELEASE_MANAGEMENT_VERSION__ environment variable is not set")
-        val projectPath = Paths.get(ReleaseManagementPluginTest::class.java.getResource("/declare-pom-dependencies/dependency-tree")!!.toURI())
+        val projectPath = Paths.get(ReleaseManagementPluginTest::class.java.getResource("/dependency-tree")!!.toURI())
         logger.debug("Project directory {}", projectPath)
         val processBuilder: LocalProcessBuilder = ProcessBuilders.newProcessBuilder(LocalProcessSpec.LOCAL_COMMAND)
         val packageName: String = System.getProperty("packageName")
