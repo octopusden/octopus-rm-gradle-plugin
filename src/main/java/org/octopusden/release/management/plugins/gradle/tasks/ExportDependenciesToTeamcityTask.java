@@ -203,8 +203,9 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
             }
         });
 
-        final Configuration copiedConfiguration = configuration.copyRecursive();
-        copiedConfiguration.setCanBeConsumed(true);
+        final Configuration copiedConfiguration = getProject().getConfigurations()
+                .detachedConfiguration(configuration.getAllDependencies().toArray(new org.gradle.api.artifacts.Dependency[0]));
+        copiedConfiguration.setCanBeConsumed(false);
         copiedConfiguration.setCanBeResolved(true);
         copiedConfiguration.setTransitive(false);
 

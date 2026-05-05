@@ -1,0 +1,44 @@
+//
+plugins {
+    id 'base'
+    id 'org.octopusden.octopus-release-management'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+group = 'org.octopusden.octopus-release-management.ft'
+
+apply plugin: 'maven-publish'
+
+configurations {
+    distr_deps
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    implementation "org.jetbrains.kotlin:kotlin-scripting-common"
+    implementation "org.jetbrains.kotlin:kotlin-scripting-jvm"
+    implementation "org.jetbrains.kotlin:kotlin-scripting-jvm-host"
+    distr_deps 'org.apache.logging.log4j:log4j-core:2.17.1'
+}
+
+task distr(type: Zip) {
+    from 'src/resources'
+    destinationDirectory = layout.buildDirectory
+    archiveFileName = 'dependency-tree.zip'
+}
+
+assemble.dependsOn distr
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            artifact (distr) {
+                artifactId 'dependency-tree-pom-dependencies'
+                extension 'zip'
+                pom {
+                    declareDependencies(configurations.distr_deps)
+                }
+           }
+        }
+    }
+}

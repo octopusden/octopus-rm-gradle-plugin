@@ -212,6 +212,37 @@ class ReleaseManagementPluginTest {
         org.xmlunit.assertj.XmlAssert.assertThat(pomContext).withNamespaceContext(prefix2Uri).hasXPath("//pom:project/pom:dependencies/pom:dependency")
     }
 
+    @Test
+    fun testDependencyTree() {
+        val releaseManagementVersion: String = System.getenv()["__RELEASE_MANAGEMENT_VERSION__"] ?: throw IllegalStateException("The __RELEASE_MANAGEMENT_VERSION__ environment variable is not set")
+        val projectPath = Paths.get(ReleaseManagementPluginTest::class.java.getResource("/dependency-tree")!!.toURI())
+        logger.debug("Project directory {}", projectPath)
+        val processBuilder: LocalProcessBuilder = ProcessBuilders.newProcessBuilder(LocalProcessSpec.LOCAL_COMMAND)
+        val packageName: String = System.getProperty("packageName")
+        val processInstance = processBuilder
+            .envVariables(
+                mapOf(
+                    "JAVA_HOME" to System.getProperty("java.home"),
+                ),
+            )
+            .logger { it.logger(logger) }
+            .mapBatExtension()
+            .mapCmdExtension()
+            .workDirectory(projectPath)
+            .commandAndArguments("$projectPath/gradlew")
+            .build()
+            .execute(
+                "dependencies",
+                "-Poctopus-release-management.version=$releaseManagementVersion",
+                "-PincludeAllDependencies=true",
+                "-PbuildVersion=1.0.0",
+                "-PpackageName=$packageName",
+            )
+            .toCompletableFuture()
+            .get()
+        assertEquals(0, processInstance.exitCode, "Gradle execution failure")
+    }
+
     @ParameterizedTest
     @MethodSource("versionSpecificationData")
     fun versionSpecificationData(expectedVersion: String, commandLineArguments: Collection<String>) {
