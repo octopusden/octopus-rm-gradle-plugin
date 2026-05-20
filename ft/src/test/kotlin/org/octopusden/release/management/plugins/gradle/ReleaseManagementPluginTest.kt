@@ -28,13 +28,8 @@ class ReleaseManagementPluginTest {
 
         @JvmStatic
         fun projectAndArtifactsTestData(): Stream<Arguments> =  Stream.of(
-                Arguments.of("single-module-gradle-4.10.3", listOf("single-module-gradle-4103")),
                 Arguments.of("single-module", listOf("single-module")),
                 Arguments.of("multi-module", listOf("module-1", "module-2")),
-                Arguments.of("single-module-gradle-6.8.3", listOf("single-module-gradle-6.8.3")),
-                Arguments.of("multi-module-4.10.3", listOf("module-3", "module-4")),
-                Arguments.of("multi-module-with-root-publish-4.10.3", listOf("multi-module-with-root-publish-4.10.3", "module-5")),
-                Arguments.of("legacy-staging-plugin", listOf("deployer-dsl-core", "deployer-dsl-file")),
                 Arguments.of("multi-module-regression", listOf("rmtest-log", "rmtest-core"))
         )
 
@@ -265,49 +260,6 @@ class ReleaseManagementPluginTest {
         assertThat(processInstance.stdOut).contains("Project version is $expectedVersion", "Assemble version: $expectedVersion")
     }
 
-    @Test
-    @DisplayName("Test publish artifacts configured via publishConfigs")
-    fun testPublishConfigs() {
-        val releaseManagementVersion: String = System.getenv()["__RELEASE_MANAGEMENT_VERSION__"] ?: throw IllegalStateException("The __RELEASE_MANAGEMENT_VERSION__ environment variable is not set")
-        val buildVersion: String = System.getenv()["__BUILD_VERSION__"] ?: throw IllegalStateException("The __BUILD_VERSION__ environment variable is not set")
-        val classifiers = arrayOf("lib", "bin")
-        classifiers.forEach { classifier ->
-            val componentName = "org.octopusden.octopus-release-management.ft.publishConfigs_$classifier"
-            val projectPath = Paths.get(ReleaseManagementPluginTest::class.java.getResource("/publish/sqlprs")!!.toURI())
-            logger.debug("Project directory {}", projectPath)
-            val gradleCommandAndLineProperties = Properties()
-            ReleaseManagementPluginTest::class.java.getResourceAsStream("/publish/teamcity-gradle-template-command.properties").use {
-                gradleCommandAndLineProperties.load(it)
-            }
-            val gradleCommandAdnArguments = gradleCommandAndLineProperties.getProperty("command-and-arguments")
-                .replace("__RELEASE_MANAGEMENT_VERSION__", releaseManagementVersion)
-                .replace("__BUILD_VERSION__", buildVersion)
-                .replace("__COMPONENT_NAME__", componentName)
-                .replace("__PACKAGE_NAME__", System.getProperty("packageName"))
-                .split(Regex("\\s+")) + arrayOf("-PCLASSIFIER=$classifier")
-            val processBuilder: LocalProcessBuilder = ProcessBuilders.newProcessBuilder(LocalProcessSpec.LOCAL_COMMAND)
-            val processInstance = processBuilder
-                .envVariables(mapOf("JAVA_HOME" to System.getProperty("java.home")))
-                .logger { it.logger(logger) }
-                .mapBatExtension()
-                .mapCmdExtension()
-                .workDirectory(projectPath)
-                .commandAndArguments("$projectPath/gradlew")
-                .build()
-                .execute(*gradleCommandAdnArguments.toTypedArray())
-                .toCompletableFuture()
-                .get()
-            assertEquals(0, processInstance.exitCode, "Gradle execution failure")
-            artifactory {
-                url = System.getenv("ARTIFACTORY_URL")
-                    ?: throw throw IllegalStateException("The ARTIFACTORY_URL environment variable is not set")
-                val buildInfo = getBuildInfo(componentName, buildVersion)
-                assertNotNull(buildInfo, "Build $componentName:$buildVersion is not registered in artifactory")
-                assertThat(buildInfo!!.modules).size().isEqualTo(1)
-                assertThat(buildInfo.modules.first().artifacts.map { it.name }).containsExactly("sqlprs-${buildVersion}-${classifier}.txt")
-            }
-        }
-    }
 
     @Test
     @DisplayName("RM config test in Kotlin style")

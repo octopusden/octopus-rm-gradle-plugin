@@ -1,13 +1,11 @@
 package org.octopusden.release.management.plugins.gradle
 
-import org.gradle.BuildResult
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.publish.maven.MavenPom
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
-import org.gradle.util.GradleVersion
 import org.octopusden.release.management.plugins.gradle.publish.MavenPomDependenciesUtility
 import org.octopusden.release.management.plugins.gradle.tasks.AutoUpdateDependenciesDumpTask
 import org.octopusden.release.management.plugins.gradle.tasks.ExportDependenciesToTeamcityTask
@@ -18,7 +16,6 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ReleaseManagementGradlePlugin.class)
     private static final String ARTIFACTORY_DEPLOYER_USERNAME_PROPERTY = 'ARTIFACTORY_DEPLOYER_USERNAME'
     private static final String ARTIFACTORY_DEPLOYER_PASSWORD_PROPERTY = 'ARTIFACTORY_DEPLOYER_PASSWORD'
-    private static final String ARTIFACTORY_PUBLISH_CONFIGS_PROPERTY = 'com.jfrog.artifactory.publishConfigs'
     private static final String PLUGIN_STATE_PROPERTY = "releaseManagementConfigurationState"
     public static final String CYCLONE_DX_SKIP_PROPERTY = "cyclonedx.skip"
     public static final String COM_JFROG_ARTIFACTORY = 'com.jfrog.artifactory'
@@ -69,11 +66,9 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
         project.rootProject.extensions.extraProperties.m2localPath = project.rootProject.hasProperty('m2_local') ? new File(project.rootProject['m2_local'] as String).toURI().toURL().toString().replaceAll(/^file:\//, 'file:///') : null
         project.rootProject.extensions.extraProperties.escrowBuild = project.rootProject.extensions.extraProperties.m2localPath != null
 
-        if (GradleVersion.current() >= GradleVersion.version('6.0')) {
-            setBuildVersion(project.rootProject)
-            project.rootProject.subprojects { Project subProject ->
-                setBuildVersion(subProject)
-            }
+        setBuildVersion(project.rootProject)
+        project.rootProject.subprojects { Project subProject ->
+            setBuildVersion(subProject)
         }
 
         project.rootProject.afterEvaluate { Project rootProject ->
@@ -107,11 +102,9 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
                 if (releaseManagementDependenciesExtension.releaseDependenciesConfiguration.isTouched() || rootProject.findProperty("includeAllDependencies")?.toString()?.equalsIgnoreCase("true")) {
                     if (releaseManagementDependenciesExtension.releaseDependenciesConfiguration.autoRegistration || rootProject.hasProperty("buildVersion")) {
                         def exportDependenciesToTeamcityTask = project.getTasksByName("exportDependenciesToTeamcity", false)[0] as ExportDependenciesToTeamcityTask
-                        rootProject.gradle.buildFinished { BuildResult buildResult ->
-                            if (buildResult.failure == null) {
-                                exportDependenciesToTeamcityTask.exportDependencies()
-                            } else {
-                                LOGGER.debug("Skip executing the exportDependenciesToTeamcity task because of build failure")
+                        rootProject.gradle.taskGraph.whenReady {
+                            rootProject.gradle.taskGraph.allTasks.each { task ->
+                                task.finalizedBy(exportDependenciesToTeamcityTask)
                             }
                         }
                     } else {
@@ -131,7 +124,6 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
         if (!project.rootProject.extensions.extraProperties.escrowBuild && baseUrl != null) {
             def repositoryKey = ("true" == project.rootProject.findProperty("publishToReleaseRepository") ?: System.getProperty("publishToReleaseRepository", System.getenv("publishToReleaseRepository"))) ? 'rnd-maven-release-local' : 'rnd-maven-dev-local'
             LOGGER.debug("Deploy to {} repository", repositoryKey)
-            final String jfrogPublishConfigs = project.rootProject.findProperty(ARTIFACTORY_PUBLISH_CONFIGS_PROPERTY) as String
             //TODO Get artifactory credentials via method
             project.rootProject.artifactory {
                 publish {
@@ -143,16 +135,10 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
                         maven = true
                     }
                     defaults {
-                        if (jfrogPublishConfigs == null) {
-                            publications('ALL_PUBLICATIONS')
-                            publishPom = true
-                        } else {
-                            publishConfigs(jfrogPublishConfigs)
-                            publishPom = false
-                        }
+                        publications('ALL_PUBLICATIONS')
                         publishArtifacts = true
-                        publishBuildInfo = true
                     }
+                    publishBuildInfo = true
                 }
             }
 
@@ -227,7 +213,7 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
                     it.enabled = false
                 }
             } else {
-                project.tasks.findByPath("artifactoryPublish").skip = true
+                project.tasks.findByPath("artifactoryPublish").enabled = false
             }
         }
     }
