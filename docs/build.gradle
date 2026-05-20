@@ -1,7 +1,7 @@
 import com.platformlib.plugins.gradle.wrapper.task.DockerTask
 
 plugins {
-    id 'org.asciidoctor.jvm.convert' version '3.3.2'
+    id 'org.asciidoctor.jvm.convert' version '4.0.4'
     id 'com.platformlib.gradle-wrapper' version '0.2.6'
 }
 
@@ -21,7 +21,7 @@ def artifactoryUrl = project.findProperty('artifactoryUrl')
 def initGradleLink = project.findProperty('initGradleLink')
 
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 asciidoctorj {

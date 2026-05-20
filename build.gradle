@@ -89,7 +89,6 @@ artifactory {
             repoKey = 'rnd-maven-dev-local'
             username = System.getenv('ARTIFACTORY_DEPLOYER_USERNAME') ?: project.findProperty('NEXUS_USER')
             password = System.getenv('ARTIFACTORY_DEPLOYER_PASSWORD') ?: project.findProperty('NEXUS_PASSWORD')
-            maven = true
         }
         defaults {
             publications('ALL_PUBLICATIONS')
