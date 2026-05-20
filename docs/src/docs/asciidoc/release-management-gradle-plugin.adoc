@@ -472,6 +472,23 @@ releaseManagement {
 * component name: "componentName", version: "1.0"
 * component "componentName:version"
 
+=== Disabling automatic export of dependencies
+
+By default, the `exportDependenciesToTeamcity` task is automatically executed after a successful build when release dependencies are configured. To disable this automatic execution while still keeping the task available for manual invocation (e.g. via `gradle exportDependenciesToTeamcity`), set the project property `autoExportDependencies` to `false`.
+
+Via command line:
+
+----
+gradlew assemble -PautoExportDependencies=false
+----
+
+or in `gradle.properties`:
+----
+autoExportDependencies=false
+----
+
+NOTE: The `exportDependenciesToTeamcity` task is always registered regardless of this setting. Setting `autoExportDependencies=false` only prevents its automatic execution after build; you can still run it manually.
+
 == Generate SBOM
 
 The _'org.octopusden.octopus-release-management'_ Gradle plugin is able to autoconfigure creation of an aggregate of all direct and transitive runtime dependencies of a project and generate a valid CycloneDX SBOM. CycloneDX is a lightweight software bill of materials (SBOM) specification designed for use in application security contexts and supply chain component analysis. For enable generation provide '-Pcyclonedx.skip=false'. File will appear in 'build/generated-resources/sbom' directory.
