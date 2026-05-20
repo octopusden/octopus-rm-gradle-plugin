@@ -132,7 +132,6 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
                         repoKey = repositoryKey
                         username = project.rootProject.findProperty(ARTIFACTORY_DEPLOYER_USERNAME_PROPERTY) ?: System.getProperty(ARTIFACTORY_DEPLOYER_USERNAME_PROPERTY, System.getenv(ARTIFACTORY_DEPLOYER_USERNAME_PROPERTY))
                         password = project.rootProject.findProperty(ARTIFACTORY_DEPLOYER_PASSWORD_PROPERTY) ?: System.getProperty(ARTIFACTORY_DEPLOYER_PASSWORD_PROPERTY, System.getenv(ARTIFACTORY_DEPLOYER_PASSWORD_PROPERTY))
-                        maven = true
                     }
                     defaults {
                         publications('ALL_PUBLICATIONS')
