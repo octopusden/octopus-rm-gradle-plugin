@@ -1,5 +1,6 @@
 package org.octopusden.release.management.plugins.gradle
 
+import org.gradle.BuildResult
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -82,11 +83,11 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
                 if (releaseManagementDependenciesExtension.releaseDependenciesConfiguration.isTouched() || rootProject.findProperty("includeAllDependencies")?.toString()?.equalsIgnoreCase("true")) {
                     if (releaseManagementDependenciesExtension.releaseDependenciesConfiguration.autoRegistration || rootProject.hasProperty("buildVersion")) {
                         def exportDependenciesToTeamcityTask = project.getTasksByName("exportDependenciesToTeamcity", false)[0] as ExportDependenciesToTeamcityTask
-                        rootProject.allprojects { Project p ->
-                            p.tasks.configureEach { task ->
-                                if (task != exportDependenciesToTeamcityTask) {
-                                    task.finalizedBy(exportDependenciesToTeamcityTask)
-                                }
+                        rootProject.gradle.buildFinished { BuildResult buildResult ->
+                            if (buildResult.failure == null) {
+                                exportDependenciesToTeamcityTask.exportDependencies()
+                            } else {
+                                LOGGER.debug("Skip executing the exportDependenciesToTeamcity task because of build failure")
                             }
                         }
                     } else {
