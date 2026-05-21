@@ -27,13 +27,6 @@ class ReleaseManagementPluginTest {
         private val logger = LoggerFactory.getLogger(ReleaseManagementPluginTest::class.java)
 
         @JvmStatic
-        fun projectAndArtifactsTestData(): Stream<Arguments> =  Stream.of(
-                Arguments.of("single-module", listOf("single-module")),
-                Arguments.of("multi-module", listOf("module-1", "module-2")),
-                Arguments.of("multi-module-regression", listOf("rmtest-log", "rmtest-core"))
-        )
-
-        @JvmStatic
         fun dependedComponentsRegistrationData(): Stream<Arguments> =  Stream.of(
             Arguments.of("multi-module", "teamcity-gradle-template-command.properties", listOf("DBSM-Cloud-Common:0.1.67", "DBSM-Cloud-API:0.1.71")),
             Arguments.of("multi-module", "teamcity-gradle-template-command-include-all-deps.properties", listOf("DBSM-Cloud-Common:0.1.67", "DBSM-Cloud-API:0.1.71", "components-registry-service:0.0.645")),
