@@ -21,6 +21,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
+import org.gradle.work.DisableCachingByDefault;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
@@ -37,6 +38,7 @@ import org.octopusden.release.management.plugins.gradle.dto.ComponentArtifact;
 import org.octopusden.release.management.plugins.gradle.dto.Module;
 import org.octopusden.release.management.plugins.gradle.dto.VersionedComponent;
 
+@DisableCachingByDefault(because = "Export task produces side effects (writes to external file) and should not be cached")
 public class ExportDependenciesToTeamcityTask extends DefaultTask {
 
     private static final String COMPONENT_REGISTRY_SERVICE_URL_PROPERTY = "COMPONENT_REGISTRY_SERVICE_URL";
