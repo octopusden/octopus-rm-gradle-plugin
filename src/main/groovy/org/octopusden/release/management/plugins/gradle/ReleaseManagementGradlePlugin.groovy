@@ -7,7 +7,6 @@ import org.gradle.api.publish.maven.MavenPom
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.octopusden.release.management.plugins.gradle.publish.MavenPomDependenciesUtility
-import org.octopusden.release.management.plugins.gradle.tasks.AutoUpdateDependenciesDumpTask
 import org.octopusden.release.management.plugins.gradle.tasks.ExportDependenciesToTeamcityTask
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -23,7 +22,7 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
     @Override
     void apply(Project project) {
 
-        LOGGER.info("Appling release management plugin to the project $project")
+        LOGGER.info("Applying release management plugin to the project $project")
 
         setupRootPublishing(project)
 
@@ -40,6 +39,7 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
             LOGGER.trace("The project $project has been already configured to use release management plugin")
             return
         }
+
         MavenPom.metaClass.declareDependencies = { configurations ->
             if (configurations instanceof Collection) {
                 withXml(MavenPomDependenciesUtility.fromConfigurations(configurations))
@@ -47,25 +47,11 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
                 withXml(MavenPomDependenciesUtility.fromConfiguration(configurations))
             }
         }
-        //TODO Backward compatibility, remove it
-        if (project.rootProject.extensions.findByName("nexusStaging") == null) {
-            project.rootProject.extensions.create("nexusStaging", GradleStagingPluginExtension)
-        }
-
-        //TODO Remove deprecated tasks after migration all TeamCity build configurations to Artifactory
-        project.rootProject.task("openStagingRepository") //Deprecated
-        project.rootProject.task("useStagingRepository") //Deprecated
-        project.rootProject.task("closeStagingRepository") //Deprecated
-        project.rootProject.task("releaseStagingRepository") //Deprecated
-
-        if (!project.rootProject.extensions.findByName("autoUpdateDependencies")) {
-            project.rootProject.extensions.create("autoUpdateDependencies", AutoUpdateDependenciesExtension)
-            project.rootProject.task("dumpAutoUpdateDependencies", type: AutoUpdateDependenciesDumpTask)
-        }
 
         project.rootProject.extensions.extraProperties.m2localPath = project.rootProject.hasProperty('m2_local') ? new File(project.rootProject['m2_local'] as String).toURI().toURL().toString().replaceAll(/^file:\//, 'file:///') : null
         project.rootProject.extensions.extraProperties.escrowBuild = project.rootProject.extensions.extraProperties.m2localPath != null
 
+        // Set build version
         setBuildVersion(project.rootProject)
         project.rootProject.subprojects { Project subProject ->
             setBuildVersion(subProject)
@@ -73,9 +59,6 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
 
         project.rootProject.afterEvaluate { Project rootProject ->
             setBuildVersion(rootProject)
-
-            //To validate auto-update dependencies configuration
-            (rootProject.tasks.findByPath("dumpAutoUpdateDependencies") as AutoUpdateDependenciesDumpTask).getAutoUpdateDependenciesConfiguration()
 
             rootProject.allprojects { Project projectToConfigure ->
                 projectToConfigure.version = rootProject.version
