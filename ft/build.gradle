@@ -8,10 +8,6 @@ group = 'org.octopusden.octopus-release-management.ft'
 
 description "Release management gradle plugin ${version} functional tests"
 
-kotlin {
-    jvmToolchain(21)
-}
-
 dependencies {
     api group: 'org.slf4j', name: 'slf4j-api', version: project['slf4j.version']
 

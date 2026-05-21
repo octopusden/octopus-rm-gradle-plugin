@@ -51,15 +51,12 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
         project.rootProject.extensions.extraProperties.m2localPath = project.rootProject.hasProperty('m2_local') ? new File(project.rootProject['m2_local'] as String).toURI().toURL().toString().replaceAll(/^file:\//, 'file:///') : null
         project.rootProject.extensions.extraProperties.escrowBuild = project.rootProject.extensions.extraProperties.m2localPath != null
 
-        // Set build version
         setBuildVersion(project.rootProject)
         project.rootProject.subprojects { Project subProject ->
             setBuildVersion(subProject)
         }
 
         project.rootProject.afterEvaluate { Project rootProject ->
-            setBuildVersion(rootProject)
-
             rootProject.allprojects { Project projectToConfigure ->
                 projectToConfigure.version = rootProject.version
                 if (rootProject.extensions.extraProperties.escrowBuild) {
@@ -120,6 +117,7 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
                     }
                     defaults {
                         publications('ALL_PUBLICATIONS')
+                        publishPom = true
                         publishArtifacts = true
                     }
                     publishBuildInfo = true
@@ -197,7 +195,7 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
                     it.enabled = false
                 }
             } else {
-                project.tasks.findByPath("artifactoryPublish").enabled = false
+                project.tasks.findByPath("artifactoryPublish").skip = true
             }
         }
     }
