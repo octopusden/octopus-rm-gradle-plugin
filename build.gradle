@@ -64,11 +64,18 @@ sourceSets {
 }
 
 java {
-    targetCompatibility = JavaVersion.VERSION_1_8
-    sourceCompatibility = JavaVersion.VERSION_1_8
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
     withJavadocJar()
     withSourcesJar()
 }
+
+tasks.withType(GroovyCompile).configureEach {
+    sourceCompatibility = '17'
+    targetCompatibility = '17'
+}
+
 //
 //Publishing section
 //
