@@ -7,8 +7,8 @@ plugins {
 version = '1.0-SNAPSHOT'
 group = 'org.octopusden.f1.automation'
 
-compileKotlin {
-    kotlinOptions.jvmTarget = "1.8"
+kotlin {
+    jvmToolchain(21)
 }
 
 dependencies {
