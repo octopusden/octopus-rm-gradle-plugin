@@ -1,6 +1,5 @@
 package org.octopusden.release.management.plugins.gradle
 
-import org.gradle.BuildResult
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -11,6 +10,8 @@ import org.octopusden.release.management.plugins.gradle.publish.MavenPomDependen
 import org.octopusden.release.management.plugins.gradle.tasks.ExportDependenciesToTeamcityTask
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+
+import java.util.concurrent.atomic.AtomicBoolean
 
 class ReleaseManagementGradlePlugin implements Plugin<Project> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ReleaseManagementGradlePlugin.class)
@@ -83,11 +84,24 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
                 if (releaseManagementDependenciesExtension.releaseDependenciesConfiguration.isTouched() || rootProject.findProperty("includeAllDependencies")?.toString()?.equalsIgnoreCase("true")) {
                     if (releaseManagementDependenciesExtension.releaseDependenciesConfiguration.autoRegistration || rootProject.hasProperty("buildVersion")) {
                         def exportDependenciesToTeamcityTask = project.getTasksByName("exportDependenciesToTeamcity", false)[0] as ExportDependenciesToTeamcityTask
-                        rootProject.gradle.buildFinished { BuildResult buildResult ->
-                            if (buildResult.failure == null) {
-                                exportDependenciesToTeamcityTask.exportDependencies()
-                            } else {
-                                LOGGER.debug("Skip executing the exportDependenciesToTeamcity task because of build failure")
+
+                        def buildFailed = new AtomicBoolean(false)
+                        rootProject.gradle.taskGraph.afterTask { task ->
+                            if (task.state.failure != null) {
+                                buildFailed.set(true)
+                            }
+                        }
+                        exportDependenciesToTeamcityTask.onlyIf("build has not failed") { !buildFailed.get() }
+
+                        // Finalize EVERY task in EVERY project so the export runs regardless of which
+                        // task the user invoked (build, assemble, publish, run, or any custom task).
+                        // Resolution stays inside task execution (proper locking in Gradle 9), and the
+                        // onlyIf guard above keeps it from running on failed builds.
+                        rootProject.allprojects { Project p ->
+                            p.tasks.configureEach { task ->
+                                if (task != exportDependenciesToTeamcityTask) {
+                                    task.finalizedBy(exportDependenciesToTeamcityTask)
+                                }
                             }
                         }
                     } else {
