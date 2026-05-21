@@ -1,4 +1,0 @@
-//
-dependencies {
-    api group: "com.${project["packageName"]}.platform.deployer", name: "deployer-core", version: project['deployer.core.version']
-}

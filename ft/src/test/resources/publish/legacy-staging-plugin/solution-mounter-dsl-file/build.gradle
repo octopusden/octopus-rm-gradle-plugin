@@ -1,4 +1,0 @@
-//
-dependencies {
-    compile group: "com.${project["packageName"]}.platform", name: "platform-utils-file", version: project['platform-utils.version']
-}

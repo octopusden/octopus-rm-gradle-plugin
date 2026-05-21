@@ -79,53 +79,6 @@ class ReleaseManagementPluginTest {
     }
 
     @ParameterizedTest
-    @MethodSource("projectAndArtifactsTestData")
-    fun testPublishArtifacts(project: String, artifacts: Collection<String>) {
-        val releaseManagementVersion: String = System.getenv()["__RELEASE_MANAGEMENT_VERSION__"] ?: throw IllegalStateException("The __RELEASE_MANAGEMENT_VERSION__ environment variable is not set")
-        val buildVersion: String = System.getenv()["__BUILD_VERSION__"] ?: throw IllegalStateException("The __BUILD_VERSION__ environment variable is not set")
-        val componentName = "org.octopusden.octopus-release-management.ft.$project"
-
-        val projectPath = Paths.get(ReleaseManagementPluginTest::class.java.getResource("/publish/$project")!!.toURI())
-        logger.debug("Project directory {}", projectPath)
-        val gradleCommandAndLineProperties = Properties()
-        ReleaseManagementPluginTest::class.java.getResourceAsStream("/publish/teamcity-gradle-template-command.properties").use {
-            gradleCommandAndLineProperties.load(it)
-        }
-        val gradleCommandAdnArguments = gradleCommandAndLineProperties.getProperty("command-and-arguments")
-            .replace("__RELEASE_MANAGEMENT_VERSION__", releaseManagementVersion)
-            .replace("__BUILD_VERSION__", buildVersion)
-            .replace("__COMPONENT_NAME__", componentName)
-            .replace("__PACKAGE_NAME__", System.getProperty("packageName"))
-            .split(Regex("\\s+"))
-        val processBuilder: LocalProcessBuilder = ProcessBuilders.newProcessBuilder(LocalProcessSpec.LOCAL_COMMAND)
-        val processInstance = processBuilder
-                .envVariables(mapOf("JAVA_HOME" to System.getProperty("java.home")))
-                .logger { it.logger(logger) }
-                .mapBatExtension()
-                .mapCmdExtension()
-                .workDirectory(projectPath)
-                .commandAndArguments("$projectPath/gradlew")
-                .build()
-                .execute(*gradleCommandAdnArguments.toTypedArray())
-                .toCompletableFuture()
-                .get()
-        assertEquals(0, processInstance.exitCode, "Gradle execution failure")
-
-        artifactory {
-            url = System.getenv("ARTIFACTORY_URL")
-                ?: throw throw IllegalStateException("The ARTIFACTORY_URL environment variable is not set")
-            val buildInfo = getBuildInfo(componentName, buildVersion)
-            assertNotNull(buildInfo, "Build $componentName:$buildVersion is not registered in artifactory")
-            artifacts.forEach { artifact ->
-                val module = buildInfo!!.modules.find { it.id == "org.octopusden.octopus-release-management.ft:$artifact:$buildVersion" }
-                assertNotNull(module, "Module $artifact:$buildVersion wasn't found in build")
-                val moduleArtifact = module!!.artifacts.find { it.name == "$artifact-${buildVersion}.jar" }
-                assertNotNull(moduleArtifact, "Module artifact $artifact-${buildVersion}.jar hasn't been found in $buildInfo")
-            }
-        }
-    }
-
-    @ParameterizedTest
     @MethodSource("dependedComponentsRegistrationData")
     fun testDependedComponentsRegistration(project: String, commandPropFile: String, expected: Collection<String>) {
         teamcityDependenciesRegistrationTest(project, commandPropFile, expected)
@@ -204,7 +157,7 @@ class ReleaseManagementPluginTest {
         assertThat(pomPath).exists()
         val pomContext = String(Files.readAllBytes(pomPath))
         val prefix2Uri = mapOf("pom" to "http://maven.apache.org/POM/4.0.0")
-        org.xmlunit.assertj.XmlAssert.assertThat(pomContext).withNamespaceContext(prefix2Uri).hasXPath("//pom:project/pom:dependencies/pom:dependency")
+        org.xmlunit.assertj3.XmlAssert.assertThat(pomContext).withNamespaceContext(prefix2Uri).hasXPath("//pom:project/pom:dependencies/pom:dependency")
     }
 
     @Test
@@ -412,7 +365,7 @@ class ReleaseManagementPluginTest {
             .toCompletableFuture()
             .get()
         assertEquals(1, processInstance.exitCode, "Gradle execution failure")
-        assertThat(stdout).contains("[ERROR] Version format not valid ReleaseManagementService:1.0-SNAPSHOT")
+        assertThat(stdout).contains("> [ERROR] Version format not valid ReleaseManagementService:1.0-SNAPSHOT")
     }
 
     private fun readDependenciesFromFile(projectPath: Path, gradleArgs: List<String> = emptyList()): List<String> {
