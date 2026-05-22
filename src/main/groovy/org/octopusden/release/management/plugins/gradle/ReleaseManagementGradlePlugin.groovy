@@ -109,7 +109,21 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
                         ? true
                         : !autoExportDependenciesProp.equalsIgnoreCase("false")
                 if (!autoExportDependencies) {
-                    LOGGER.debug("Automatic export of dependencies to TeamCity is disabled via autoExportDependencies = false")
+                    LOGGER.info("Automatic export of dependencies to TeamCity is disabled via autoExportDependencies=false; any stale report will be removed on successful build finish")
+                    def exportDependenciesToTeamcityTask = project.getTasksByName("exportDependenciesToTeamcity", false)[0] as ExportDependenciesToTeamcityTask
+                    rootProject.gradle.buildFinished { BuildResult buildResult ->
+                        if (buildResult.failure != null) {
+                            return
+                        }
+                        def reportFile = exportDependenciesToTeamcityTask.getResolvedReportFile()
+                        if (reportFile.exists()) {
+                            if (reportFile.delete()) {
+                                LOGGER.info("Removed stale dependencies report {}", reportFile.absolutePath)
+                            } else {
+                                LOGGER.warn("Failed to remove stale dependencies report {}", reportFile.absolutePath)
+                            }
+                        }
+                    }
                 } else if (releaseManagementDependenciesExtension.releaseDependenciesConfiguration.isTouched() || rootProject.findProperty("includeAllDependencies")?.toString()?.equalsIgnoreCase("true")) {
                     if (releaseManagementDependenciesExtension.releaseDependenciesConfiguration.autoRegistration || rootProject.hasProperty("buildVersion")) {
                         def exportDependenciesToTeamcityTask = project.getTasksByName("exportDependenciesToTeamcity", false)[0] as ExportDependenciesToTeamcityTask

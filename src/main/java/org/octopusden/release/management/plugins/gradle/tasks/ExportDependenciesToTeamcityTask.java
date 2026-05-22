@@ -283,15 +283,17 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         };
     }
 
+    public File getResolvedReportFile() {
+        File outputFilePath = new File(outputFile);
+        if (outputFilePath.isAbsolute()) {
+            return outputFilePath;
+        }
+        return new File(getProject().getLayout().getBuildDirectory().get().getAsFile(), outputFile);
+    }
+
     private void exportDependenciesToFile(List<ExportDependencyDTO> dependencies) {
         try {
-            File outputFilePath = new File(outputFile);
-            final File reportFile;
-            if (outputFilePath.isAbsolute()) {
-                reportFile = outputFilePath;
-            } else {
-                reportFile = new File(getProject().getLayout().getBuildDirectory().get().getAsFile(), outputFile);
-            }
+            final File reportFile = getResolvedReportFile();
             File parentDir = reportFile.getParentFile();
             if (parentDir != null && !parentDir.mkdirs() && !parentDir.isDirectory()) {
                 throw new GradleException("Failed to create output directory: " + parentDir.getAbsolutePath());

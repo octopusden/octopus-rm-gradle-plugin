@@ -5,7 +5,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'dbsm-cloud-database'
-
-include ':dbsm-cloud-database-api'
-include ':dbsm-cloud-database-core'
+rootProject.name = 'auto-export-disabled'

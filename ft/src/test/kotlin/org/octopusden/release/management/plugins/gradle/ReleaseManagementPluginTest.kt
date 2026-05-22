@@ -44,7 +44,6 @@ class ReleaseManagementPluginTest {
             Arguments.of("multi-module", "teamcity-gradle-template-command-include-all-deps.properties", listOf("DBSM-Cloud-Common:0.1.67", "DBSM-Cloud-API:0.1.71", "components-registry-service:0.0.645")),
             Arguments.of("auto-registration", "teamcity-gradle-template-command.properties", listOf("web_portal3_doc:3.53.3-137","web_portal3_doc_ch:3.53.3-137")),
             Arguments.of("auto-registration", "teamcity-gradle-template-command-include-all-deps.properties", listOf("web_portal3_doc:3.53.3-137", "web_portal3_doc_ch:3.53.3-137", "DBSM-Cloud-API:0.1.71")),
-            Arguments.of("auto-export-disabled", "teamcity-gradle-template-command.properties", emptyList<String>()),
             Arguments.of("without-configuration", "teamcity-gradle-template-command.properties", emptyList<String>()),
             Arguments.of("without-configuration", "teamcity-gradle-template-command-include-all-deps.properties", listOf("DBSM-Cloud-API:0.1.71","DBSM-Cloud-Common:0.1.67")),
 
@@ -141,6 +140,56 @@ class ReleaseManagementPluginTest {
     @MethodSource("subprojectDeclaredData")
     fun testSubprojectDeclared(project: String, commandPropFile: String, expected: Collection<String>) {
         teamcityDependenciesRegistrationTest(project, commandPropFile, expected)
+    }
+
+    @Test
+    @DisplayName("autoExportDependencies=false skips export AND cleans up stale report file")
+    fun testAutoExportDisabledCleansStaleReport() {
+        val releaseManagementVersion: String = System.getenv()["__RELEASE_MANAGEMENT_VERSION__"]
+            ?: throw IllegalStateException("The __RELEASE_MANAGEMENT_VERSION__ environment variable is not set")
+        val projectPath = Paths.get(
+            ReleaseManagementPluginTest::class.java.getResource("/teamcity-dependencies-registration/auto-export-disabled")!!.toURI()
+        )
+        val reportFile = projectPath.resolve("build/components-dependencies.json")
+        val gradleCommandAndLineProperties = Properties()
+        ReleaseManagementPluginTest::class.java.getResourceAsStream("/teamcity-dependencies-registration/teamcity-gradle-template-command.properties")
+            .use { gradleCommandAndLineProperties.load(it) }
+        val gradleCommandAndArguments = gradleCommandAndLineProperties.getProperty("command-and-arguments")
+            .replace("__RELEASE_MANAGEMENT_VERSION__", releaseManagementVersion)
+            .replace("__PACKAGE_NAME__", System.getProperty("packageName"))
+            .split(Regex("\\s+"))
+
+        fun runGradle(): List<String> {
+            val stdout = ArrayList<String>()
+            val processInstance = ProcessBuilders.newProcessBuilder(LocalProcessSpec.LOCAL_COMMAND)
+                .envVariables(mapOf("JAVA_HOME" to System.getProperty("java.home")))
+                .logger { it.logger(logger) }
+                .mapBatExtension()
+                .mapCmdExtension()
+                .workDirectory(projectPath)
+                .commandAndArguments("$projectPath/gradlew")
+                .stdOutConsumer(stdout::add)
+                .build()
+                .execute(*gradleCommandAndArguments.toTypedArray())
+                .toCompletableFuture()
+                .get()
+            assertEquals(0, processInstance.exitCode, "Gradle execution failure")
+            return stdout
+        }
+
+        // Fresh workspace: no report should be produced and none should be left behind.
+        Files.deleteIfExists(reportFile)
+        val freshStdout = runGradle()
+        assertThat(reportFile).doesNotExist()
+        assertThat(freshStdout.joinToString("\n"))
+            .contains("Automatic export of dependencies to TeamCity is disabled")
+
+        // Dirty workspace: pre-seed a stale report and assert the cleanup hook removes it.
+        Files.createDirectories(reportFile.parent)
+        Files.write(reportFile, "[{\"name\":\"stale\",\"version\":\"0.0.0\"}]".toByteArray())
+        assertThat(reportFile).exists()
+        runGradle()
+        assertThat(reportFile).doesNotExist()
     }
 
     fun teamcityDependenciesRegistrationTest(
