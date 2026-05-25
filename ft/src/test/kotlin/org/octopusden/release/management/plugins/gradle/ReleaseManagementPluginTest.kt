@@ -143,7 +143,7 @@ class ReleaseManagementPluginTest {
     }
 
     @Test
-    @DisplayName("autoExportDependencies=false skips export AND cleans up stale report file")
+    @DisplayName("autoExportDependencies=false: skips export, cleans stale report, but preserves fresh report from explicit task run")
     fun testAutoExportDisabledCleansStaleReport() {
         val releaseManagementVersion: String = System.getenv()["__RELEASE_MANAGEMENT_VERSION__"]
             ?: throw IllegalStateException("The __RELEASE_MANAGEMENT_VERSION__ environment variable is not set")
@@ -159,7 +159,7 @@ class ReleaseManagementPluginTest {
             .replace("__PACKAGE_NAME__", System.getProperty("packageName"))
             .split(Regex("\\s+"))
 
-        fun runGradle(): List<String> {
+        fun runGradle(vararg extraArgs: String): List<String> {
             val stdout = ArrayList<String>()
             val processBuilder: LocalProcessBuilder = ProcessBuilders.newProcessBuilder(LocalProcessSpec.LOCAL_COMMAND)
             val processInstance = processBuilder
@@ -171,7 +171,7 @@ class ReleaseManagementPluginTest {
                 .commandAndArguments("$projectPath/gradlew")
                 .stdOutConsumer(stdout::add)
                 .build()
-                .execute(*gradleCommandAndArguments.toTypedArray())
+                .execute(*(gradleCommandAndArguments + extraArgs.toList()).toTypedArray())
                 .toCompletableFuture()
                 .get()
             assertEquals(0, processInstance.exitCode, "Gradle execution failure")
@@ -191,6 +191,14 @@ class ReleaseManagementPluginTest {
         assertThat(reportFile).exists()
         runGradle()
         assertThat(reportFile).doesNotExist()
+
+        // Explicit invocation: when exportDependenciesToTeamcity is in the executed task graph,
+        // the cleanup hook must NOT delete the freshly produced report.
+        Files.deleteIfExists(reportFile)
+        runGradle("exportDependenciesToTeamcity")
+        assertThat(reportFile)
+            .as("Report produced by an explicit exportDependenciesToTeamcity run must be preserved")
+            .exists()
     }
 
     fun teamcityDependenciesRegistrationTest(

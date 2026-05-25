@@ -115,6 +115,13 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
                         if (buildResult.failure != null) {
                             return
                         }
+                        // Skip cleanup if the task actually ran in this build (e.g. wired via
+                        // another task's dependsOn) - the report is fresh, not stale.
+                        def taskState = exportDependenciesToTeamcityTask.state
+                        if (taskState.executed && taskState.failure == null) {
+                            LOGGER.debug("Skip stale dependencies report cleanup: exportDependenciesToTeamcity was executed in this build")
+                            return
+                        }
                         def reportFile = exportDependenciesToTeamcityTask.getResolvedReportFile()
                         if (reportFile.exists()) {
                             if (reportFile.delete()) {
