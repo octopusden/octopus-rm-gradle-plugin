@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 import org.jetbrains.annotations.NotNull;
 import org.octopusden.octopus.components.registry.light.client.ComponentsRegistryServiceClient;
@@ -283,6 +284,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         };
     }
 
+    @Internal
     public File getResolvedReportFile() {
         File outputFilePath = new File(outputFile);
         if (outputFilePath.isAbsolute()) {
