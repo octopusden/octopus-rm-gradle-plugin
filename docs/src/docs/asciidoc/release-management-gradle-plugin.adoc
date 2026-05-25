@@ -487,7 +487,10 @@ or in `gradle.properties`:
 autoExportDependencies=false
 ----
 
-NOTE: The `exportDependencies` task is always registered regardless of this setting. Setting `autoExportDependencies=false` only prevents its automatic execution after build; you can still run it manually.
+*NOTE:*
+
+- The `exportDependencies` task is always registered regardless of this setting. Setting `autoExportDependencies=false` only prevents its automatic execution after build; you can still run it manually.
+- The legacy task name `exportDependenciesToTeamcity` is kept as a deprecated alias that simply depends on `exportDependencies`. It will emit a deprecation warning when invoked and may be removed in a future release. Migrate to `gradle exportDependencies`.
 
 == Generate SBOM
 

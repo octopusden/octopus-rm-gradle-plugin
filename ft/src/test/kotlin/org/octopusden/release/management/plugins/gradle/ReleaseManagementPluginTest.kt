@@ -199,6 +199,16 @@ class ReleaseManagementPluginTest {
         assertThat(reportFile)
             .`as`("Report produced by an explicit exportDependencies run must be preserved")
             .exists()
+
+        // Backward-compat alias: running the legacy task name must produce the report
+        // (delegated via dependsOn) AND emit a deprecation warning.
+        Files.deleteIfExists(reportFile)
+        val aliasStdout = runGradle("exportDependenciesToTeamcity")
+        assertThat(reportFile)
+            .`as`("Report produced via the deprecated exportDependenciesToTeamcity alias must be preserved")
+            .exists()
+        assertThat(aliasStdout.joinToString("\n"))
+            .contains("'exportDependenciesToTeamcity' is deprecated")
     }
 
     fun teamcityDependenciesRegistrationTest(

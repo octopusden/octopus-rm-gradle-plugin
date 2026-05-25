@@ -34,6 +34,16 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
             project.task("exportDependencies", type: ExportDependenciesTask)
         }
 
+        // Backward-compatibility alias for the former task name. Delegates to
+        // exportDependencies and emits a deprecation warning when invoked.
+        if (project.getTasksByName("exportDependenciesToTeamcity", false).empty) {
+            def aliasTask = project.task("exportDependenciesToTeamcity")
+            aliasTask.dependsOn("exportDependencies")
+            aliasTask.doFirst {
+                LOGGER.warn("Task 'exportDependenciesToTeamcity' is deprecated and will be removed in a future release; use 'exportDependencies' instead.")
+            }
+        }
+
         if (!project.extensions.findByName("releaseManagement")) {
             project.extensions.create("releaseManagement", ReleaseManagementDependenciesExtension)
         }
@@ -100,7 +110,9 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
                 }
             }
 
-            def exportDependenciesSpecified = project.gradle.startParameter.taskNames.any { it.endsWith("exportDependencies") }
+            def exportDependenciesSpecified = project.gradle.startParameter.taskNames.any {
+                it.endsWith("exportDependencies") || it.endsWith("exportDependenciesToTeamcity")
+            }
 
             if (!exportDependenciesSpecified && !rootProject.gradle.startParameter.offline && !project.rootProject.extensions.extraProperties.escrowBuild) {
                 def releaseManagementDependenciesExtension = project.extensions.getByType(ReleaseManagementDependenciesExtension.class)
