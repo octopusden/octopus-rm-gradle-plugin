@@ -161,7 +161,8 @@ class ReleaseManagementPluginTest {
 
         fun runGradle(): List<String> {
             val stdout = ArrayList<String>()
-            val processInstance = ProcessBuilders.newProcessBuilder(LocalProcessSpec.LOCAL_COMMAND)
+            val processBuilder: LocalProcessBuilder = ProcessBuilders.newProcessBuilder(LocalProcessSpec.LOCAL_COMMAND)
+            val processInstance = processBuilder
                 .envVariables(mapOf("JAVA_HOME" to System.getProperty("java.home")))
                 .logger { it.logger(logger) }
                 .mapBatExtension()
