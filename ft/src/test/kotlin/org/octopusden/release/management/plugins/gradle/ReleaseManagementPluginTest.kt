@@ -197,7 +197,7 @@ class ReleaseManagementPluginTest {
         Files.deleteIfExists(reportFile)
         runGradle("exportDependencies")
         assertThat(reportFile)
-            .as("Report produced by an explicit exportDependencies run must be preserved")
+            .`as`("Report produced by an explicit exportDependencies run must be preserved")
             .exists()
     }
 
