@@ -192,12 +192,12 @@ class ReleaseManagementPluginTest {
         runGradle()
         assertThat(reportFile).doesNotExist()
 
-        // Explicit invocation: when exportDependenciesToTeamcity is in the executed task graph,
+        // Explicit invocation: when exportDependencies is in the executed task graph,
         // the cleanup hook must NOT delete the freshly produced report.
         Files.deleteIfExists(reportFile)
-        runGradle("exportDependenciesToTeamcity")
+        runGradle("exportDependencies")
         assertThat(reportFile)
-            .as("Report produced by an explicit exportDependenciesToTeamcity run must be preserved")
+            .as("Report produced by an explicit exportDependencies run must be preserved")
             .exists()
     }
 
