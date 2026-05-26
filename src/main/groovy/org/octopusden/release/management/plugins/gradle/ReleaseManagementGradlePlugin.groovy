@@ -10,7 +10,7 @@ import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
 import org.gradle.util.GradleVersion
 import org.octopusden.release.management.plugins.gradle.publish.MavenPomDependenciesUtility
 import org.octopusden.release.management.plugins.gradle.tasks.AutoUpdateDependenciesDumpTask
-import org.octopusden.release.management.plugins.gradle.tasks.ExportDependenciesToTeamcityTask
+import org.octopusden.release.management.plugins.gradle.tasks.ExportDependenciesTask
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -30,8 +30,18 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
 
         setupRootPublishing(project)
 
+        if (project.getTasksByName("exportDependencies", false).empty) {
+            project.task("exportDependencies", type: ExportDependenciesTask)
+        }
+
+        // Backward-compatibility alias for the former task name. Delegates to
+        // exportDependencies and emits a deprecation warning when invoked.
         if (project.getTasksByName("exportDependenciesToTeamcity", false).empty) {
-            project.task("exportDependenciesToTeamcity", type: ExportDependenciesToTeamcityTask)
+            def aliasTask = project.task("exportDependenciesToTeamcity")
+            aliasTask.dependsOn("exportDependencies")
+            aliasTask.doFirst {
+                LOGGER.warn("Task 'exportDependenciesToTeamcity' is deprecated and will be removed in a future release; use 'exportDependencies' instead.")
+            }
         }
 
         if (!project.extensions.findByName("releaseManagement")) {
@@ -100,22 +110,49 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
                 }
             }
 
-            def exportDependenciesToTeamcitySpecified = project.gradle.startParameter.taskNames.any { it.endsWith("exportDependenciesToTeamcity") }
+            def exportDependenciesSpecified = project.gradle.startParameter.taskNames.any {
+                it.endsWith("exportDependencies") || it.endsWith("exportDependenciesToTeamcity")
+            }
 
-            if (!exportDependenciesToTeamcitySpecified && !rootProject.gradle.startParameter.offline && !project.rootProject.extensions.extraProperties.escrowBuild) {
+            if (!exportDependenciesSpecified && !rootProject.gradle.startParameter.offline && !project.rootProject.extensions.extraProperties.escrowBuild) {
                 def releaseManagementDependenciesExtension = project.extensions.getByType(ReleaseManagementDependenciesExtension.class)
-                if (releaseManagementDependenciesExtension.releaseDependenciesConfiguration.isTouched() || rootProject.findProperty("includeAllDependencies")?.toString()?.equalsIgnoreCase("true")) {
+                def autoExportDependenciesProp = rootProject.findProperty("autoExportDependencies")?.toString()?.trim()
+                def autoExportDependencies = (autoExportDependenciesProp == null)
+                        ? true
+                        : !autoExportDependenciesProp.equalsIgnoreCase("false")
+                if (!autoExportDependencies) {
+                    LOGGER.info("Automatic export of dependencies to TeamCity is disabled via autoExportDependencies=false; any stale report will be removed on successful build finish")
+                    def exportDependenciesTask = project.getTasksByName("exportDependencies", false)[0] as ExportDependenciesTask
+                    rootProject.gradle.buildFinished { BuildResult buildResult ->
+                        if (buildResult.failure != null) {
+                            return
+                        }
+                        def taskState = exportDependenciesTask.state
+                        if (taskState.executed && taskState.failure == null) {
+                            LOGGER.debug("Skip stale dependencies report cleanup: exportDependencies was executed in this build")
+                            return
+                        }
+                        def reportFile = exportDependenciesTask.getResolvedReportFile()
+                        if (reportFile.exists()) {
+                            if (reportFile.delete()) {
+                                LOGGER.info("Removed stale dependencies report {}", reportFile.absolutePath)
+                            } else {
+                                LOGGER.warn("Failed to remove stale dependencies report {}", reportFile.absolutePath)
+                            }
+                        }
+                    }
+                } else if (releaseManagementDependenciesExtension.releaseDependenciesConfiguration.isTouched() || rootProject.findProperty("includeAllDependencies")?.toString()?.equalsIgnoreCase("true")) {
                     if (releaseManagementDependenciesExtension.releaseDependenciesConfiguration.autoRegistration || rootProject.hasProperty("buildVersion")) {
-                        def exportDependenciesToTeamcityTask = project.getTasksByName("exportDependenciesToTeamcity", false)[0] as ExportDependenciesToTeamcityTask
+                        def exportDependenciesTask = project.getTasksByName("exportDependencies", false)[0] as ExportDependenciesTask
                         rootProject.gradle.buildFinished { BuildResult buildResult ->
                             if (buildResult.failure == null) {
-                                exportDependenciesToTeamcityTask.exportDependencies()
+                                exportDependenciesTask.exportDependencies()
                             } else {
-                                LOGGER.debug("Skip executing the exportDependenciesToTeamcity task because of build failure")
+                                LOGGER.debug("Skip executing the exportDependencies task because of build failure")
                             }
                         }
                     } else {
-                        LOGGER.debug("The exportDependenciesToTeamcity task autorun is not enabled")
+                        LOGGER.debug("The exportDependencies task autorun is not enabled")
                     }
                 } else {
                     LOGGER.debug("The release management extension is not configured, skip exporting dependencies to TeamCity")
