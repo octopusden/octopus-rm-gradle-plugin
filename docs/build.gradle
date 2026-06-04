@@ -46,16 +46,16 @@ asciidoctor {
 
 tasks.register('publishToWiki', DockerTask) {
     doFirst {
-        if (initGradleLink == null) {
+        if (initGradleLink == null || initGradleLink.toString().trim().isEmpty()) {
             throw new IllegalArgumentException("`initGradleLink` property must be defined. Example: -PinitGradleLink=https://github.com/your-org/your-repo/blob/main/init.gradle")
         }
-        if (dockerRegistry == null) {
+        if (dockerRegistry == null || dockerRegistry.toString().trim().isEmpty()) {
             throw new IllegalArgumentException("`docker.registry` property must be defined. Example: -Pdocker.registry=registry.hub.docker.com")
         }
-        if (artifactoryUrl == null) {
+        if (artifactoryUrl == null || artifactoryUrl.toString().trim().isEmpty()) {
             throw new IllegalArgumentException("`artifactoryUrl` property must be defined. Example: -PartifactoryUrl=https://artifactory.your-company.com")
         }
-        if (gradle9SupportLink == null) {
+        if (gradle9SupportLink == null || gradle9SupportLink.toString().trim().isEmpty()) {
             throw new IllegalArgumentException("`gradle9SupportLink` property must be defined. Example: -Pgradle9SupportLink=https://wiki.your-company.com/display/RD/Gradle+9+Support")
         }
     }
