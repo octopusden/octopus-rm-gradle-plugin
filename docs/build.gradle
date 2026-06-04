@@ -20,6 +20,10 @@ def artifactoryUrl = project.findProperty('artifactoryUrl')
 // Example: https://github.com/your-org/your-repo/blob/main/init.gradle
 def initGradleLink = project.findProperty('initGradleLink')
 
+// Link to the internal wiki page describing Gradle 9 support / migration
+// Example: https://wiki.your-company.com/display/RD/Gradle+9+Support
+def gradle9SupportLink = project.findProperty('gradle9SupportLink')
+
 repositories {
     jcenter()
 }
@@ -29,7 +33,8 @@ asciidoctorj {
                'version-label': version,
                'docker-registry': dockerRegistry,
                'artifactory-url': artifactoryUrl,
-               'init-gradle-link': initGradleLink
+               'init-gradle-link': initGradleLink,
+               'gradle9-support-link': gradle9SupportLink
 }
 
 asciidoctor {
@@ -50,6 +55,9 @@ tasks.register('publishToWiki', DockerTask) {
         if (artifactoryUrl == null) {
             throw new IllegalArgumentException("`artifactoryUrl` property must be defined. Example: -PartifactoryUrl=https://artifactory.your-company.com")
         }
+        if (gradle9SupportLink == null) {
+            throw new IllegalArgumentException("`gradle9SupportLink` property must be defined. Example: -Pgradle9SupportLink=https://wiki.your-company.com/display/RD/Gradle+9+Support")
+        }
     }
     image = "${project."docker.registry"}/confluencepublisher/confluence-publisher:0.14.0"
     dockerOptions = ['--network', 'host']
@@ -68,7 +76,8 @@ tasks.register('publishToWiki', DockerTask) {
                                       "\"version-label\": \"$version\", " +
                                       "\"docker-registry\":\"$dockerRegistry\"," +
                                       "\"artifactory-url\":\"$artifactoryUrl\"," +
-                                      "\"init-gradle-link\":\"$initGradleLink\"}",
+                                      "\"init-gradle-link\":\"$initGradleLink\"," +
+                                      "\"gradle9-support-link\":\"$gradle9SupportLink\"}",
            "CONVERT_ONLY"           : "false"
     ]
 }

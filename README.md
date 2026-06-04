@@ -1,5 +1,9 @@
 # Gradle org.octopusden.octopus-release-management plugin
 
+> **⚠️ Deprecated:** `org.octopusden.octopus-release-management` is deprecated and is not compatible with Gradle 9.
+>
+> Existing Gradle 8 projects may continue using this plugin. However, new projects and projects upgrading to Gradle 9 should use [`org.octopusden.octopus-platform`](https://github.com/octopusden/octopus-platform-gradle-plugin/blob/main/README.md) instead.
+
 Plugin for integration continuous integration and release management in gradle projects.
 
 Goal: Incapsulate all logic to work with Artifactory and Release Management.

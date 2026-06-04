@@ -9,6 +9,15 @@ v: New hope
 
 == Introduction
 
+[WARNING]
+====
+*org.octopusden.octopus-release-management is deprecated and is not compatible with Gradle 9.*
+
+Existing Gradle 8 projects may continue using this plugin. However, new projects and projects upgrading to Gradle 9 should use *org.octopusden.octopus-platform* instead.
+
+For migration instructions, see link:{gradle9-support-link}[Gradle 9 Support] or https://github.com/octopusden/octopus-platform-gradle-plugin/blob/main/README.md[octopus-platform documentation].
+====
+
  org.octopusden.octopus-release-management gradle plugin is intended for supporting and Continuous integration.
 
 
