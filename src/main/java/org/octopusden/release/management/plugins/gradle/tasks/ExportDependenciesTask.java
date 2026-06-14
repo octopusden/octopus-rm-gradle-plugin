@@ -25,6 +25,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedDependencyResult;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskAction;
 import org.jetbrains.annotations.NotNull;
 import org.octopusden.octopus.components.registry.light.client.ComponentsRegistryServiceClient;
@@ -37,7 +38,7 @@ import org.octopusden.release.management.plugins.gradle.dto.ComponentArtifact;
 import org.octopusden.release.management.plugins.gradle.dto.Module;
 import org.octopusden.release.management.plugins.gradle.dto.VersionedComponent;
 
-public class ExportDependenciesToTeamcityTask extends DefaultTask {
+public class ExportDependenciesTask extends DefaultTask {
 
     private static final String COMPONENT_REGISTRY_SERVICE_URL_PROPERTY = "COMPONENT_REGISTRY_SERVICE_URL";
     private static final String VERSION_FORMAT_PATTERN = "\\d+([._-]\\d+)*";
@@ -55,7 +56,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
 
     private ComponentsRegistryServiceClient componentsRegistryServiceClient;
 
-    public ExportDependenciesToTeamcityTask() {
+    public ExportDependenciesTask() {
     }
 
     @Input
@@ -105,7 +106,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
                         .thenComparing(ExportDependencyDTO::getVersion, Comparator.nullsFirst(String::compareTo))
                 ).collect(Collectors.toList());
 
-        getLogger().info("ExportDependenciesToTeamcityTask Found dependencies: {}", dependenciesToExport);
+        getLogger().info("ExportDependenciesTask Found dependencies: {}", dependenciesToExport);
         getLogger().info(
                 "Please note: only {}.* dependencies from {} will be registered by release management",
                 getComponentsRegistryServiceClient().getSupportedGroupIds().stream().findFirst().orElse(""),
@@ -129,7 +130,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
     }
 
     private void printProperties() {
-        getLogger().info("ExportDependenciesToTeamcityTask Parameters: excludedConfigurations={}, includeAllDependencies={}, outputFile={}, componentRegistryServiceUrl={}",
+        getLogger().info("ExportDependenciesTask Parameters: excludedConfigurations={}, includeAllDependencies={}, outputFile={}, componentRegistryServiceUrl={}",
                 excludedConfigurations, includeAllDependencies, outputFile, componentsRegistryServiceUrl);
     }
 
@@ -152,7 +153,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
                     final org.octopusden.octopus.components.registry.light.client.dto.VersionedComponent component = ac.getComponent();
                     final ExportDependencyDTO result;
                     if (component == null) {
-                        getLogger().error("ExportDependenciesToTeamcityTask Component not found by {}", ac.getArtifact());
+                        getLogger().error("ExportDependenciesTask Component not found by {}", ac.getArtifact());
                         result = null;
                     } else {
                         result = new ExportDependencyDTO(component.getId(), component.getVersion());
@@ -203,8 +204,9 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
             }
         });
 
-        final Configuration copiedConfiguration = configuration.copyRecursive();
-        copiedConfiguration.setCanBeConsumed(true);
+        final Configuration copiedConfiguration = getProject().getConfigurations()
+                .detachedConfiguration(configuration.getAllDependencies().toArray(new org.gradle.api.artifacts.Dependency[0]));
+        copiedConfiguration.setCanBeConsumed(false);
         copiedConfiguration.setCanBeResolved(true);
         copiedConfiguration.setTransitive(false);
 
@@ -245,7 +247,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
         final Set<String> supportedGroupIds = getComponentsRegistryServiceClient().getSupportedGroupIds();
         return componentArtifact -> {
             final boolean passed = supportedGroupIds.stream().anyMatch(g -> componentArtifact.getGroup().startsWith(g));
-            getLogger().info("ExportDependenciesToTeamcityTask SupportedGroups dependencies filter: {} passed = {}", componentArtifact, passed);
+            getLogger().info("ExportDependenciesTask SupportedGroups dependencies filter: {} passed = {}", componentArtifact, passed);
             return passed;
         };
     }
@@ -266,7 +268,7 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
                     .getExcludeModules()
                     .stream()
                     .noneMatch(getModulePredicate.apply(componentArtifact));
-            getLogger().info("ExportDependenciesToTeamcityTask Exclude dependencies filter: {} passed = {}", componentArtifact, passed);
+            getLogger().info("ExportDependenciesTask Exclude dependencies filter: {} passed = {}", componentArtifact, passed);
             return passed;
         };
     }
@@ -277,27 +279,30 @@ public class ExportDependenciesToTeamcityTask extends DefaultTask {
                     .getIncludeModules()
                     .stream()
                     .anyMatch(getModulePredicate.apply(componentArtifact));
-            getLogger().info("ExportDependenciesToTeamcityTask Include dependencies filter: {} passed = {}", componentArtifact, passed);
+            getLogger().info("ExportDependenciesTask Include dependencies filter: {} passed = {}", componentArtifact, passed);
             return passed;
         };
     }
 
+    @Internal
+    public File getResolvedReportFile() {
+        File outputFilePath = new File(outputFile);
+        if (outputFilePath.isAbsolute()) {
+            return outputFilePath;
+        }
+        return new File(getProject().getLayout().getBuildDirectory().get().getAsFile(), outputFile);
+    }
+
     private void exportDependenciesToFile(List<ExportDependencyDTO> dependencies) {
         try {
-            File outputFilePath = new File(outputFile);
-            final File reportFile;
-            if (outputFilePath.isAbsolute()) {
-                reportFile = outputFilePath;
-            } else {
-                reportFile = new File(getProject().getLayout().getBuildDirectory().get().getAsFile(), outputFile);
-            }
+            final File reportFile = getResolvedReportFile();
             File parentDir = reportFile.getParentFile();
             if (parentDir != null && !parentDir.mkdirs() && !parentDir.isDirectory()) {
                 throw new GradleException("Failed to create output directory: " + parentDir.getAbsolutePath());
             }
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.enable(SerializationFeature.INDENT_OUTPUT).writeValue(reportFile, dependencies);
-            getLogger().info("ExportDependenciesToTeamcityTask dependencies written to {}", reportFile.getAbsolutePath());
+            getLogger().info("ExportDependenciesTask dependencies written to {}", reportFile.getAbsolutePath());
         } catch (IOException e) {
             throw new GradleException("Failed to write dependencies to " + outputFile, e);
         }

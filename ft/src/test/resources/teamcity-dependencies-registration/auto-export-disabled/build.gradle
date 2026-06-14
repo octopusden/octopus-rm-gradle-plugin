@@ -1,0 +1,23 @@
+//
+plugins {
+    id 'java-library'
+    id 'org.octopusden.octopus-release-management'
+}
+
+group = 'org.octopusden.dbsm.cloud'
+
+releaseManagement {
+    releaseDependencies {
+        component(name: 'web_portal3_doc', version: project['doc.version'])
+        component(name: 'web_portal3_doc_ch', version: project['doc.version'])
+   }
+}
+
+configurations {
+    customConfiguration
+}
+
+dependencies {
+    customConfiguration "com.${project["packageName"]}.dbsm.cloud:dbsm-cloud-common-core:${project['dbsm-cloud-common.version']}"
+    api "com.${project["packageName"]}.dbsm.cloud:dbsm-cloud-api:${project['dbsm-cloud-api.version']}"
+}

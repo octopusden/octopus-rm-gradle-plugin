@@ -142,6 +142,75 @@ class ReleaseManagementPluginTest {
         teamcityDependenciesRegistrationTest(project, commandPropFile, expected)
     }
 
+    @Test
+    @DisplayName("autoExportDependencies=false: skips export, cleans stale report, but preserves fresh report from explicit task run")
+    fun testAutoExportDisabledCleansStaleReport() {
+        val releaseManagementVersion: String = System.getenv()["__RELEASE_MANAGEMENT_VERSION__"]
+            ?: throw IllegalStateException("The __RELEASE_MANAGEMENT_VERSION__ environment variable is not set")
+        val projectPath = Paths.get(
+            ReleaseManagementPluginTest::class.java.getResource("/teamcity-dependencies-registration/auto-export-disabled")!!.toURI()
+        )
+        val reportFile = projectPath.resolve("build/components-dependencies.json")
+        val gradleCommandAndLineProperties = Properties()
+        ReleaseManagementPluginTest::class.java.getResourceAsStream("/teamcity-dependencies-registration/teamcity-gradle-template-command.properties")
+            .use { gradleCommandAndLineProperties.load(it) }
+        val gradleCommandAndArguments = gradleCommandAndLineProperties.getProperty("command-and-arguments")
+            .replace("__RELEASE_MANAGEMENT_VERSION__", releaseManagementVersion)
+            .replace("__PACKAGE_NAME__", System.getProperty("packageName"))
+            .split(Regex("\\s+"))
+
+        fun runGradle(vararg extraArgs: String): List<String> {
+            val stdout = ArrayList<String>()
+            val processBuilder: LocalProcessBuilder = ProcessBuilders.newProcessBuilder(LocalProcessSpec.LOCAL_COMMAND)
+            val processInstance = processBuilder
+                .envVariables(mapOf("JAVA_HOME" to System.getProperty("java.home")))
+                .logger { it.logger(logger) }
+                .mapBatExtension()
+                .mapCmdExtension()
+                .workDirectory(projectPath)
+                .commandAndArguments("$projectPath/gradlew")
+                .stdOutConsumer(stdout::add)
+                .build()
+                .execute(*(gradleCommandAndArguments + extraArgs.toList()).toTypedArray())
+                .toCompletableFuture()
+                .get()
+            assertEquals(0, processInstance.exitCode, "Gradle execution failure")
+            return stdout
+        }
+
+        // Fresh workspace: no report should be produced and none should be left behind.
+        Files.deleteIfExists(reportFile)
+        val freshStdout = runGradle()
+        assertThat(reportFile).doesNotExist()
+        assertThat(freshStdout.joinToString("\n"))
+            .contains("Automatic export of dependencies to TeamCity is disabled")
+
+        // Dirty workspace: pre-seed a stale report and assert the cleanup hook removes it.
+        Files.createDirectories(reportFile.parent)
+        Files.write(reportFile, "[{\"name\":\"stale\",\"version\":\"0.0.0\"}]".toByteArray())
+        assertThat(reportFile).exists()
+        runGradle()
+        assertThat(reportFile).doesNotExist()
+
+        // Explicit invocation: when exportDependencies is in the executed task graph,
+        // the cleanup hook must NOT delete the freshly produced report.
+        Files.deleteIfExists(reportFile)
+        runGradle("exportDependencies")
+        assertThat(reportFile)
+            .`as`("Report produced by an explicit exportDependencies run must be preserved")
+            .exists()
+
+        // Backward-compat alias: running the legacy task name must produce the report
+        // (delegated via dependsOn) AND emit a deprecation warning.
+        Files.deleteIfExists(reportFile)
+        val aliasStdout = runGradle("exportDependenciesToTeamcity")
+        assertThat(reportFile)
+            .`as`("Report produced via the deprecated exportDependenciesToTeamcity alias must be preserved")
+            .exists()
+        assertThat(aliasStdout.joinToString("\n"))
+            .contains("'exportDependenciesToTeamcity' is deprecated")
+    }
+
     fun teamcityDependenciesRegistrationTest(
         project: String,
         gradleCommandPropFile: String,
@@ -210,6 +279,37 @@ class ReleaseManagementPluginTest {
         val pomContext = String(Files.readAllBytes(pomPath))
         val prefix2Uri = mapOf("pom" to "http://maven.apache.org/POM/4.0.0")
         org.xmlunit.assertj.XmlAssert.assertThat(pomContext).withNamespaceContext(prefix2Uri).hasXPath("//pom:project/pom:dependencies/pom:dependency")
+    }
+
+    @Test
+    fun testDependencyTree() {
+        val releaseManagementVersion: String = System.getenv()["__RELEASE_MANAGEMENT_VERSION__"] ?: throw IllegalStateException("The __RELEASE_MANAGEMENT_VERSION__ environment variable is not set")
+        val projectPath = Paths.get(ReleaseManagementPluginTest::class.java.getResource("/dependency-tree")!!.toURI())
+        logger.debug("Project directory {}", projectPath)
+        val processBuilder: LocalProcessBuilder = ProcessBuilders.newProcessBuilder(LocalProcessSpec.LOCAL_COMMAND)
+        val packageName: String = System.getProperty("packageName")
+        val processInstance = processBuilder
+            .envVariables(
+                mapOf(
+                    "JAVA_HOME" to System.getProperty("java.home"),
+                ),
+            )
+            .logger { it.logger(logger) }
+            .mapBatExtension()
+            .mapCmdExtension()
+            .workDirectory(projectPath)
+            .commandAndArguments("$projectPath/gradlew")
+            .build()
+            .execute(
+                "dependencies",
+                "-Poctopus-release-management.version=$releaseManagementVersion",
+                "-PincludeAllDependencies=true",
+                "-PbuildVersion=1.0.0",
+                "-PpackageName=$packageName",
+            )
+            .toCompletableFuture()
+            .get()
+        assertEquals(0, processInstance.exitCode, "Gradle execution failure")
     }
 
     @ParameterizedTest
