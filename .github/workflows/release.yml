@@ -4,6 +4,10 @@ on:
   repository_dispatch:
     types: release
 
+# contents: write to create the tag, the GitHub release and its assets.
+permissions:
+  contents: write
+
 jobs:
   build:
     uses: octopusden/octopus-base/.github/workflows/common-java-gradle-release.yml@v3.0.0
