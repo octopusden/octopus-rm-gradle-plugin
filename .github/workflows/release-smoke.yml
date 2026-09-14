@@ -1,0 +1,29 @@
+# Rehearses a release without publishing anything.
+#
+# dry-run skips every step that leaves the runner — the Sonatype and Portal publishes, the tag,
+# the GitHub Release and the release-log entry — while still running the Maven
+# Central preflight and the publication guard. Those two are what no pull-request check
+# exercises: they run only during a release, and v3.0.0 rewrote the guard.
+#
+# workflow_dispatch only surfaces workflows present on the default branch, so this file has to
+# reach main before it can be run.
+name: Release Smoke
+
+on: workflow_dispatch
+
+permissions:
+  contents: read
+
+jobs:
+  smoke:
+    name: release/smoke
+    # Inputs mirror release.yml, with two differences: the commit and version come from this run
+    # rather than a repository_dispatch payload, and dry-run is on.
+    uses: octopusden/octopus-base/.github/workflows/common-java-gradle-release.yml@v3.0.0
+    with:
+      flow-type: hybrid
+      java-version: '11'
+      commit-hash: ${{ github.sha }}
+      build-version: 0.0.0-smoke-${{ github.run_number }}
+      dry-run: true
+    secrets: inherit
