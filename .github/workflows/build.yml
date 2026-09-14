@@ -2,9 +2,12 @@ name: Gradle Compile & UT
 
 on: [push, pull_request, workflow_dispatch]
 
+permissions:
+  contents: read
+
 jobs:
   run-build-and-deploy:
-    uses: octopusden/octopus-base/.github/workflows/common-java-gradle-build.yml@v2.7.1
+    uses: octopusden/octopus-base/.github/workflows/common-java-gradle-build.yml@v3.0.0
     with:
       flow-type: hybrid
       java-version: '11'
