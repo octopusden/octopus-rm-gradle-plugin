@@ -5,6 +5,7 @@ plugins {
     id 'groovy'
     id 'java-gradle-plugin'
     id 'com.jfrog.artifactory'
+    id 'org.sonarqube'
 }
 
 version = project.findProperty('buildVersion') ?: System.getenv("BUILD_VERSION") ?: '1.0-SNAPSHOT'
