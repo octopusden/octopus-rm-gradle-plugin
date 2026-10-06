@@ -1,6 +1,11 @@
 name: Gradle Compile & UT
 
-on: [push, pull_request, workflow_dispatch]
+# Pull requests run this through merge-gate.yml, not on their own.
+on:
+  push:
+    branches: [ main ]
+  workflow_call:
+  workflow_dispatch:
 
 permissions:
   contents: read
