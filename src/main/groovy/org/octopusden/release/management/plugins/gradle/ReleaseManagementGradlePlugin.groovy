@@ -4,6 +4,8 @@ import org.gradle.BuildResult
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.dsl.RepositoryHandler
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.publish.maven.MavenPom
 import org.gradle.api.publish.maven.plugins.MavenPublishPlugin
 import org.gradle.api.publish.maven.tasks.PublishToMavenRepository
@@ -96,17 +98,9 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
                 projectToConfigure.version = rootProject.version
                 if (rootProject.extensions.extraProperties.escrowBuild) {
                     projectToConfigure.buildscript.repositories.clear()
-                    projectToConfigure.buildscript.repositories {
-                        maven {
-                            url rootProject.extensions.extraProperties.m2localPath
-                        }
-                    }
+                    addEscrowRepository(projectToConfigure.buildscript.repositories, rootProject.extensions.extraProperties.m2localPath as String)
                     projectToConfigure.repositories.clear()
-                    projectToConfigure.repositories {
-                        maven {
-                            url rootProject.extensions.extraProperties.m2localPath
-                        }
-                    }
+                    addEscrowRepository(projectToConfigure.repositories, rootProject.extensions.extraProperties.m2localPath as String)
                 }
             }
 
@@ -265,6 +259,25 @@ class ReleaseManagementGradlePlugin implements Plugin<Project> {
                 }
             } else {
                 project.tasks.findByPath("artifactoryPublish").skip = true
+            }
+        }
+    }
+
+    /**
+     * Declares the escrow local repository. Artifacts built during an escrow build are published there with
+     * publishToMavenLocal, which writes maven-metadata-local.xml but not maven-metadata.xml. With the default
+     * metadata sources Gradle lists the versions of a Maven repository only from maven-metadata.xml, so a dynamic
+     * version (e.g. 1.+) of such an artifact would find no versions. The artifact() source makes Gradle list
+     * the version directories instead.
+     */
+    private static void addEscrowRepository(final RepositoryHandler repositories, final String m2localPath) {
+        repositories.maven { MavenArtifactRepository repository ->
+            repository.url = m2localPath
+            if (GradleVersion.current() >= GradleVersion.version('4.5')) {
+                repository.metadataSources {
+                    mavenPom()
+                    artifact()
+                }
             }
         }
     }
