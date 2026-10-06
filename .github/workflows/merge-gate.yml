@@ -1,0 +1,29 @@
+# PUBLIC — every PR triggers this workflow; the gate/merge check must be green to merge.
+#
+# Deliberately narrower than the org-wide convention (build + quality + security): this repository
+# is deprecated and does not adopt the octopus-quality plugin (see #79). The plugin requires Java 11
+# to resolve, while this repository is still built on Java 8 elsewhere. The gate therefore
+# aggregates the existing build only.
+name: Merge Gate
+
+on:
+  pull_request:
+    branches: [ main ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+
+  gate-merge:
+    name: gate/merge
+    needs: [ build ]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: octopusden/octopus-base/.github/actions/merge-gate@v3.0.0
+        with:
+          needs: ${{ toJson(needs) }}

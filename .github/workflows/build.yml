@@ -1,6 +1,11 @@
+# PUBLIC — reusable build (compile + unit tests). Runs on push and on manual dispatch, and is
+# called by merge-gate.yml on pull requests, so it does not trigger on pull_request itself.
 name: Gradle Compile & UT
 
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+  workflow_call:
+  workflow_dispatch:
 
 permissions:
   contents: read
