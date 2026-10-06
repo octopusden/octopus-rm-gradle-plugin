@@ -1,0 +1,24 @@
+name: Merge Gate
+
+# gate/merge is the check octopus-repository-policy requires on the default branch
+# (policy/checks-common). It is green only when every job below succeeded.
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    uses: ./.github/workflows/build.yml
+
+  gate-merge:
+    name: gate/merge
+    if: ${{ always() }}
+    needs: [ build ]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: octopusden/octopus-base/.github/actions/merge-gate@v3.0.3
+        with:
+          needs: ${{ toJson(needs) }}
