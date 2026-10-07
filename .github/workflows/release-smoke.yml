@@ -22,7 +22,7 @@ jobs:
     uses: octopusden/octopus-base/.github/workflows/common-java-gradle-release.yml@v3.0.0
     with:
       flow-type: hybrid
-      java-version: '11'
+      java-version: '21'
       commit-hash: ${{ github.sha }}
       build-version: 0.0.0-smoke-${{ github.run_number }}
       dry-run: true

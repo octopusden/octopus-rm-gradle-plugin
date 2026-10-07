@@ -18,6 +18,10 @@ ext {
     escrowBuild = m2localPath != null
 }
 
+configurations {
+    groovyCompiler
+}
+
 repositories {
     maven {
         url "https://plugins.gradle.org/m2/"
@@ -30,6 +34,14 @@ dependencies {
     implementation platform("com.fasterxml.jackson:jackson-bom:${project['jackson.version']}")
     implementation group: 'com.fasterxml.jackson.core', name: 'jackson-databind'
     implementation group: 'org.cyclonedx', name: 'cyclonedx-gradle-plugin', version: project['cyclonedx.version']
+    groovyCompiler 'org.codehaus.groovy:groovy:3.0.22'
+}
+
+// Gradle 9 bundles Groovy 4, which compiles every dynamic call to invokedynamic through
+// org.codehaus.groovy.vmplugin.v8.IndyInterface. Groovy 2.x has no such class, so a plugin compiled that way
+// fails to apply on Gradle 4-6 (Groovy 2.4/2.5). Compile with the Groovy 3.0.22 that Gradle 8.11 bundled.
+tasks.named('compileGroovy') {
+    groovyClasspath = configurations.groovyCompiler
 }
 
 gradlePlugin {
@@ -50,6 +62,13 @@ gradlePlugin {
             }
         }
     }
+}
+
+// On Gradle 9, java-gradle-plugin turns stricter validation on for a plugin project that applies a
+// publishing plugin (maven-publish here), which also requires every task type to declare why it is not
+// cacheable. Keep the validation that Gradle 8 ran, so the published plugin classes stay as they are.
+tasks.named('validatePlugins') {
+    enableStricterValidation = false
 }
 
 def resourceDir = "${buildDir}/generated/resources"
@@ -90,13 +109,12 @@ artifactory {
             repoKey = 'rnd-maven-dev-local'
             username = System.getenv('ARTIFACTORY_DEPLOYER_USERNAME') ?: project.findProperty('NEXUS_USER')
             password = System.getenv('ARTIFACTORY_DEPLOYER_PASSWORD') ?: project.findProperty('NEXUS_PASSWORD')
-            maven = true
         }
+        publishBuildInfo = true
         defaults {
             publications('ALL_PUBLICATIONS')
             publishArtifacts = true
             publishPom = true
-            publishBuildInfo = true
         }
     }
 }
